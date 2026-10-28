@@ -41,21 +41,25 @@
                     Text="Appearance and behaviour" />
 
                 <controls:SettingsCard
-                    Description="Light, dark or follow Windows, plus language, starting with Windows, the tray icon and reduced motion."
-                    Header="Theme, language and startup">
-                    <Button
-                        Command="{x:Bind ViewModel.OpenPageCommand, Mode=OneWay}"
-                        CommandParameter="settingsGeneral"
-                        Content="Open" />
+                    Description="Follow Windows, or force light or dark. Iceberg no longer tints itself from the wallpaper."
+                    Header="Theme">
+                    <RadioButtons SelectedIndex="{x:Bind ViewModel.ThemeIndex, Mode=TwoWay}">
+                        <x:String>Follow Windows</x:String>
+                        <x:String>Light</x:String>
+                        <x:String>Dark</x:String>
+                    </RadioButtons>
                 </controls:SettingsCard>
 
                 <controls:SettingsCard
-                    Description="How the taskbar looks behind the wallpaper."
-                    Header="Taskbar">
-                    <Button
-                        Command="{x:Bind ViewModel.OpenPageCommand, Mode=OneWay}"
-                        CommandParameter="settingsWallpaper"
-                        Content="Open" />
+                    Description="Starts quietly in the notification area and never opens a window at log-in."
+                    Header="Start with Windows">
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.StartWithWindows, Mode=TwoWay}" />
+                </controls:SettingsCard>
+
+                <controls:SettingsCard
+                    Description="The tray icon is how the window comes back after it is closed."
+                    Header="Tray icon">
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowTrayIcon, Mode=TwoWay}" />
                 </controls:SettingsCard>
             </StackPanel>
 

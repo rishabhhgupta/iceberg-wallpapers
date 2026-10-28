@@ -1,105 +1,76 @@
+# Iceberg Wallpapers
 
-<p align="center">
-  <img alt="Files Logo" src="resources/figma_promo_16x9.jpg" width="450" />
-  <h2 align="center">Lively Wallpaper</h2>
-</p>
+A quiet wallpaper app for Windows. It finds pictures from a handful of good
+sites, changes them on a schedule you choose, and stays out of the way in the
+notification area.
 
-[![GitHub release](https://img.shields.io/github/release/rocksdanister/lively/all.svg)](https://github.com/rocksdanister/lively/releases)
-[![Github all releases](https://img.shields.io/github/downloads/rocksdanister/lively/total.svg)](https://github.com/rocksdanister/lively/releases)
-[![GitHub stars](https://img.shields.io/github/stars/rocksdanister/lively.svg)](https://github.com/rocksdanister/lively/stargazers)
-[![Documentation](https://img.shields.io/badge/Docs-WIP-red.svg)](https://github.com/rocksdanister/lively/wiki)
-[![Issues](https://img.shields.io/github/issues/rocksdanister/lively.svg)](https://github.com/rocksdanister/lively/issues)
-[![Crowdin](https://badges.crowdin.net/lively-wallpaper/localized.svg)](https://crowdin.com/project/lively-wallpaper)
+Iceberg is built on [Lively Wallpaper](https://github.com/rocksdanister/lively)
+by Rocksdanister. The engine, the player code and most of the plumbing are
+Lively's work. Iceberg adds its own sources, filters, rotation and a simpler
+interface on top. Thank you to Rocksdanister and every Lively contributor.
 
-## Contents
-- [About](#about)
-- [Features](#features)
-- [Download](#download)
-- [Support](#support)
-- [License](#license)
+## What it does
 
-## About
-<img src="/resources/main_preview.gif" width="600" height="338"/>
+- **Five picture sources.** Wallhaven, Unsplash, Pixabay, the Bing daily image
+  and Windows Spotlight.
+- **Filters that match each site.** One dialog, with a block per switched-on
+  site showing that site's real options.
+- **Photos, illustrations and videos.** Videos play a small muted preview when
+  you hover over them. The full file is only downloaded when you apply it.
+- **Rotation with one simple choice.** Change at sunrise and sunset, or on a
+  timer. Videos and GIFs stay out of the rotation unless you switch them on.
+- **Lives in the tray.** It never opens a window when Windows starts. Closing
+  the window leaves rotation running. The tray icon brings it back.
+- **Light, dark, or follow Windows.** The app never tints itself from the
+  wallpaper.
 
-Animated desktop wallpapers, bring your desktop to life!
+## Requirements
 
-#### Join Discussions:
-* <a href="https://www.reddit.com/r/LivelyWallpaper/">Reddit</a>
-* <a href="https://github.com/rocksdanister/lively/discussions/">Github</a>
+- Windows 10 version 1809 or later, or Windows 11
+- 64-bit (x64) Windows
 
-## Features
-*Wait a sec, preview gif clips take some time to load.*
-#### Types Of Wallpapers
-| Wallpaper | Example |  Interactive | Resolution | Performance |
-|--|--|--|--|--|
-| Video/GIF | <img src="/resources/wallpaper_video.gif" width="256" height="144"/><br><a href="https://www.pexels.com/video/blue-texture-abstract-leaves-7710243/">Video</a> by Rostislav Uzunov | No| Fixed | Fixed |
-| Webpage | <img src="/resources/wallpaper_html.gif" width="256" height="144"/><br><a href="http://louie.co.nz/25th_hour/"> 25th Hour</a> by Loius Coyle  | Yes| Variable | Variable |
-| Application/Games | <img src="/resources/wallpaper_emulator.gif" width="256" height="144"/><br>Run Unity or Godot games as wallpaper | Yes | Variable | Variable |
-#### Screensavers
-<img src="/resources/screen_saver.gif" width="600" height="338"/>
+## Install
 
-* Lively supports Windows screensaver.
-* Any wallpaper can be used as screensaver.
-* Multiple monitor supported.
-* [Learn more..](https://github.com/rocksdanister/lively/wiki/Screen-Saver)
-#### Automation
-<img src="/resources/rotary_demo.gif" width="600" height="338"/>
+Iceberg is distributed through the Microsoft Store. There is no loose
+installer.
 
-* Lively can be controlled with command line arguments from terminal.
-* Integrate with other languages like Python or scripting software AutoHotKey.
-* [Learn more..](https://github.com/rocksdanister/lively/wiki/Command-Line-Controls)
-#### Lively API
-<img src="/resources/music_api.gif" width="600" height="338"/>
+## Build from source
 
-* Powerful set of API for developers to create interactive wallpapers.
-* Get hardware readings, audio graph, music information..
-* [Learn more..](https://github.com/rocksdanister/lively/wiki/API)
-#### Machine Learning
-<img src="/resources/wallpaper_depth.gif" width="600" height="338"/>
+You need the .NET 9 SDK, the Windows App SDK and Visual Studio 2022 with the
+Windows application development workload.
 
-* Leverage Machine Learning inference to create dynamic wallpapers.
-* [Learn more..](https://github.com/rocksdanister/lively/wiki/Machine-Learning)
-#### More Features
-- Minimal webpage renderer powered by chromium.
-- Hardware accelerated video playback using mpv/vlc player with customizable video filters.
-- Easy to use; Just drag'n'drop media or webpages into lively to set as wallpaper.
-- Latest Windows 11 design using WinUI 3 + WindowsAppSDK framework.
-- Efficient, Lively is native application designed for Windows.
-- Fully opensource & free; no blackmagic, no features behind paywall.
-- Shadertoy.com urls are supported as wallpaper.
-#### Performance
- * Wallpaper playback pauses when fullscreen application/games run on the machine (~0% cpu, gpu usage). 
- * Set wallpaper playback rules based on running foreground application.
- * Can be set to pause wallpaper when running on battery power (laptops.)
- * Wallpaper automatically pauses when running remote desktop session.
+1. Copy `secrets/ApiKeys.example.props` to `secrets/ApiKeys.local.props`.
+2. Fill in your own free API keys for Wallhaven, Unsplash and Pixabay. Bing and
+   Spotlight need no key.
+3. Build:
 
-**_Lively is not officially affiliated with Unity technologies, godot, shadertoy;_**
-## Download
-##### Microsoft Store (Windows 10 1809 or above)
+```powershell
+dotnet build src/Lively/Lively.UI.WinUI/Lively.UI.WinUI.csproj -c Debug -p:Platform=x64
+```
 
-[<img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft" width="142px" height="52px">](https://apps.microsoft.com/store/detail/9NTM2QC6QWS7)
+`secrets/ApiKeys.local.props` is ignored by git and must never be committed.
+The build reads the keys from it and generates a file inside `obj/`, which is
+also ignored. A script, `scripts/check-secrets.ps1`, fails if a key-shaped
+string appears in a tracked file.
 
-##### [Installer (Windows 10 1903 or above)](https://github.com/rocksdanister/lively/releases/latest)
+Run the tests with:
 
-[Which version do I download?](https://github.com/rocksdanister/lively/wiki/Differences-Between-Distributions)
+```powershell
+dotnet test src/Lively/Lively.Discovery.Tests/Lively.Discovery.Tests.csproj
+dotnet test src/Lively/Lively.Sources.Tests/Lively.Sources.Tests.csproj
+dotnet test src/Lively/Lively.Imaging.Tests/Lively.Imaging.Tests.csproj
+```
 
-## Support
-Are you a Lively fan and want to help out? here are some options..
+## Privacy
 
-#### Programmer
-Code contributions are welcome, [learn more..](https://github.com/rocksdanister/lively/wiki/Contributing-Guidelines)
-
-#### Designer
-Help improve UI/UX of Lively, [learn more..](https://github.com/rocksdanister/lively/wiki/Contributing-Guidelines)
-
-#### Localization
-Help translate Lively to more languages, [learn more..](https://github.com/rocksdanister/lively-translations)
-
-#### Suggestions & Bug report
-Suggest new features or file bug reports to improve Lively, [learn more..](https://github.com/rocksdanister/lively/issues)
-
-#### Spread the word
-Star this repository, leave a Microsoft store review or tell your friend.. any help is welcome :)
+Iceberg has no account, no analytics and no advertising. It talks to the
+picture sites you switch on, and to nothing else. See [PRIVACY.md](PRIVACY.md).
 
 ## License
-Lively is licensed under [GPL-v3.](https://github.com/rocksdanister/lively/blob/core-separation/LICENSE)
+
+Iceberg is free software under the GNU General Public License version 3. See
+[LICENSE](LICENSE).
+
+It is a fork of Lively Wallpaper, also GPL-3.0. Iceberg is not affiliated with
+Microsoft. Wallhaven, Unsplash, Pixabay, Bing and Windows Spotlight are services
+of their respective owners.

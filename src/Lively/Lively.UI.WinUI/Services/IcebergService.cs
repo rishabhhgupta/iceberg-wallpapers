@@ -13,7 +13,6 @@ using Lively.Discovery;
 using Lively.Discovery.Favourites;
 using Lively.Discovery.Rotation;
 using Lively.Discovery.Settings;
-using Lively.Discovery.Weather;
 using Lively.Grpc.Client;
 using Lively.Imaging.Caching;
 using Lively.Imaging.Loading;
@@ -124,8 +123,8 @@ namespace Lively.UI.WinUI.Services
             // while Lively is running, so it keeps working with the window closed.
             StartRotation();
 
-            // Never block startup on the weather. If it fails we simply use the
-            // clock, which is already correct enough to pick a palette.
+            // The phase of the day comes from the clock alone: no weather call
+            // and nothing to wait for at start-up.
             _ = RefreshAtmosphereAsync();
         }
 
@@ -147,12 +146,9 @@ namespace Lively.UI.WinUI.Services
                 disk,
                 settings.MaxImageBytes);
 
-            var weather = new OpenMeteoWeatherProvider(
-                apiHttp,
-                TimeSpan.FromMinutes(30),
-                Path.Combine(DataDirectory, "location.json"));
-
-            Atmosphere = new AtmosphereService(weather);
+            // No weather lookup and no location: the phase of the day comes from
+            // the clock alone, so this never touches the network.
+            Atmosphere = new AtmosphereService(null!);
         }
 
         /// <summary>

@@ -30,7 +30,11 @@ param(
     [string]$Dotnet = 'dotnet',
 
     # Delete previous staging output before publishing.
-    [switch]$Clean
+    [switch]$Clean,
+
+    # Sign the package with the certificate in the project file. The Microsoft
+    # Store signs submissions itself, so this is off by default.
+    [switch]$Sign
 )
 
 $ErrorActionPreference = 'Stop'
@@ -97,12 +101,15 @@ if (Test-Path $pluginStore) {
 }
 
 Write-Step "Packing MSIX"
+$signing = if ($Sign) { 'true' } else { 'false' }
 & $Dotnet build $uiProj `
     -c $Configuration `
     -p:Platform=$Platform `
     -p:RuntimeIdentifiers=$Runtime `
     -p:IsMsixRelease=true `
-    -p:GenerateAppxPackageOnBuild=true
+    -p:GenerateAppxPackageOnBuild=true `
+    -p:AppxBundle=Never `
+    -p:AppxPackageSigningEnabled=$signing
 
 if ($LASTEXITCODE -ne 0) { throw "MSIX build failed with exit code $LASTEXITCODE" }
 

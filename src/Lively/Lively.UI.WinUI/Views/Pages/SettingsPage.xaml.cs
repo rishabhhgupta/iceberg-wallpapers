@@ -1,5 +1,6 @@
 using System;
 using Lively.Common.Services;
+using Lively.Grpc.Client;
 using Lively.UI.WinUI.Services;
 using Lively.UI.WinUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +20,8 @@ namespace Lively.UI.WinUI.Views.Pages
 
             ViewModel = new SettingsViewModel(
                 App.Services.GetRequiredService<IcebergService>(),
-                App.Services.GetRequiredService<IMainNavigator>());
+                App.Services.GetRequiredService<IMainNavigator>(),
+                App.Services.GetRequiredService<IUserSettingsClient>());
 
             this.DataContext = ViewModel;
             this.Loaded += SettingsPage_Loaded;

@@ -1,48 +1,47 @@
-# Privacy Policy
+# Privacy Policy — Iceberg Wallpapers
 
-**Content of the privacy policy**
+Last updated: 28 October 2026
 
-This application doesn’t:
+Iceberg Wallpapers has no account, no analytics, no advertising and no
+tracking. It does not collect or sell personal information.
 
--   Collect or use any personal information;
--   Store any personal data;
--   Share it to third parties.
+## What stays on your PC
 
-For proper operation, this application might collect the following data:
+Iceberg stores its settings, cached pictures and a local log file on your PC.
+The log is only used to diagnose a problem and is never uploaded automatically.
 
--   The title of opened windows;
--   The class of opened windows;
--   The name of the processes that have open windows.
+For its window and fullscreen features, Iceberg reads the title, class and
+process name of open windows. This happens locally and is never sent anywhere.
 
-This data is treated for proper function of the application and never sent online. A local log file is created on the host system, it is used for voluntary and optional submission to the developer to help diagnose an issue and not uploaded anywhere.
+## What goes over the internet
 
-**Microsoft Store users only**
+Iceberg contacts the picture services you switch on:
 
-_This section only applies if you acquire the application via the Microsoft Store._
+- Wallhaven (wallhaven.cc)
+- Unsplash (unsplash.com)
+- Pixabay (pixabay.com)
+- Microsoft Bing, for the daily image (bing.com)
+- Windows Spotlight, for Microsoft's spotlight images (microsoft.com)
 
-If the application crashes, built-in Microsoft Store telemetry features might send to the developer anonymized information such as:
+These requests contain the search or filter you chose, plus the app's API key
+where the service requires one. They do not contain your name, email or any
+other personal information. Each service has its own privacy policy.
 
--   Stack trace of the crash;
--   System specifications;
--   List of processes running on the system;
--   Memory dump of the application process, which might contain data collected for operation.
+The free API keys built into the app belong to the app, not to you.
 
-This information will only be used only for debugging, will never be shared with third-parties.
+## Microsoft Store
 
-**Links to Other Sites**
+If you install Iceberg from the Microsoft Store and it crashes, Windows may
+send the developer anonymised crash information such as a stack trace, system
+specifications and a memory dump. This is used only to fix the problem and is
+never shared with third parties.
 
-This Service may contain links to other sites. If you click on a third-party link, you will be directed to that site. Note that these external sites are not operated by me. Therefore, I strongly advise you to review the Privacy Policy of these websites. I have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party sites or services.
+## Links
 
-**Changes to This Privacy Policy**
+Iceberg links to its source code, the Lively project and its licence. Those
+sites are not operated by Iceberg. Their own privacy policies apply.
 
-I may update our Privacy Policy from time to time. Thus, you are advised to review this page periodically for any changes. I will notify you of any changes by posting the new Privacy Policy on this page.
+## Contact
 
-Last updated 2021-02-10
-
-**Contact Us**
-
-If you have questions about this application, please [fill an issue on GitHub](https://github.com/rocksdanister/lively/issues/new).
-
-**Footnotes**
-
-Instructions on retrieving local log file [can be found here.](https://github.com/rocksdanister/lively/wiki/Common-Problems)
+Questions or problems: open an issue at
+<https://github.com/rishabhhgupta/iceberg-wallpapers/issues>.

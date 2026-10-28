@@ -74,6 +74,8 @@ namespace Lively.UI.WinUI
             navView.BackRequested += NavView_BackRequested;
             contentFrame.Navigated += ContentFrame_Navigated;
 
+            ApplyTheme();
+
             // A window taller than the screen is worse than a smaller one.
             Root.Loaded += (_, _) => FitToScreen();
             this.Activated += MainWindow_FirstActivated;
@@ -323,6 +325,21 @@ namespace Lively.UI.WinUI
         }
 
         private void WebViewRequired_InfoBar_Closed(InfoBar sender, InfoBarClosedEventArgs args) => sender.IsOpen = false;
+
+        /// <summary>Picks the light or dark look. WinUI cannot change the app theme at
+        /// runtime, but it can change the look of the window's content, which is
+        /// everything the person actually sees.</summary>
+        public void ApplyTheme()
+        {
+            if (this.Content is not FrameworkElement root) return;
+
+            root.RequestedTheme = userSettings.Settings.ApplicationTheme switch
+            {
+                AppTheme.Light => ElementTheme.Light,
+                AppTheme.Dark => ElementTheme.Dark,
+                _ => ElementTheme.Default,
+            };
+        }
 
         private void NavView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
         {

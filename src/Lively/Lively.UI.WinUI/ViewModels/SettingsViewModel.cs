@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Lively.Common.Services;
+using Lively.Grpc.Client;
+using Lively.Models;
 using Lively.Models.Enums;
 using Lively.UI.WinUI.Services;
 
@@ -20,13 +22,25 @@ namespace Lively.UI.WinUI.ViewModels
     {
         private readonly IcebergService service;
         private readonly IMainNavigator navigator;
+        private readonly IUserSettingsClient userSettings;
         private bool loading = true;
 
-        public SettingsViewModel(IcebergService service, IMainNavigator navigator)
+        public SettingsViewModel(IcebergService service, IMainNavigator navigator, IUserSettingsClient userSettings)
         {
             this.service = service ?? throw new ArgumentNullException(nameof(service));
             this.navigator = navigator ?? throw new ArgumentNullException(nameof(navigator));
+            this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
         }
+
+        // 0 = follow Windows, 1 = light, 2 = dark.
+        [ObservableProperty]
+        private int themeIndex;
+
+        [ObservableProperty]
+        private bool startWithWindows;
+
+        [ObservableProperty]
+        private bool showTrayIcon;
 
         [ObservableProperty]
         private bool rotationEnabled = true;
@@ -80,6 +94,10 @@ namespace Lively.UI.WinUI.ViewModels
 
             loading = true;
 
+            ThemeIndex = (int)userSettings.Settings.ApplicationTheme;
+            StartWithWindows = userSettings.Settings.Startup;
+            ShowTrayIcon = userSettings.Settings.SysTrayIcon;
+
             RotationEnabled = settings.RotationEnabled;
             RotationModeIndex = settings.RotationMode == "timer" ? 1 : 0;
             TimerModeIndex = settings.TimerMode switch
@@ -101,6 +119,35 @@ namespace Lively.UI.WinUI.ViewModels
         }
 
         partial void OnRotationEnabledChanged(bool value) => _ = SaveAsync();
+
+        partial void OnThemeIndexChanged(int value)
+        {
+            if (loading) return;
+
+            userSettings.Settings.ApplicationTheme = (AppTheme)Math.Clamp(value, 0, 2);
+            userSettings.Save<SettingsModel>();
+
+            if (App.Services.GetService(typeof(MainWindow)) is MainWindow window)
+            {
+                window.ApplyTheme();
+            }
+        }
+
+        partial void OnStartWithWindowsChanged(bool value)
+        {
+            if (loading) return;
+
+            userSettings.Settings.Startup = value;
+            userSettings.Save<SettingsModel>();
+        }
+
+        partial void OnShowTrayIconChanged(bool value)
+        {
+            if (loading) return;
+
+            userSettings.Settings.SysTrayIcon = value;
+            userSettings.Save<SettingsModel>();
+        }
 
         partial void OnRotationModeIndexChanged(int value) => _ = SaveAsync();
 

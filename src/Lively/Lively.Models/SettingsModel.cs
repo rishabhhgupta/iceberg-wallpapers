@@ -207,7 +207,7 @@ namespace Lively.Models
             CefDiskCache = false;
             DebugMenu = false;
             IsBetaOptIn = false;
-            ApplicationTheme = AppTheme.Dark;
+            ApplicationTheme = AppTheme.Auto;
             RemoteDesktopPause = AppRules.pause;
             PowerSaveModePause = AppRules.ignore;
             LockScreenAutoWallpaper = false;
