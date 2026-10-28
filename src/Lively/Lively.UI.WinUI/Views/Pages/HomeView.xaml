@@ -1,0 +1,443 @@
+<Page
+    x:Class="Lively.UI.WinUI.Views.Pages.HomeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:CommunityToolkit.WinUI.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Lively.UI.WinUI.ViewModels"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+        <converters:BoolNegationConverter x:Key="BoolNegation" />
+
+        <DataTemplate x:Key="WallpaperTileTemplate" x:DataType="vm:HomeTile">
+            <Grid
+                Height="200"
+                Margin="6"
+                Tag="{x:Bind}"
+                PointerEntered="Tile_PointerEntered"
+                PointerExited="Tile_PointerExited"
+                Tapped="Tile_Tapped">
+                <Border
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="12">
+                    <Grid>
+                        <!--  Shown until the picture arrives.  -->
+                        <FontIcon
+                            FontSize="26"
+                            Glyph="&#xEB9F;"
+                            Opacity="0.18" />
+
+                        <Image
+                            Source="{x:Bind Image, Mode=OneWay}"
+                            Stretch="UniformToFill" />
+
+                        <!--  A video plays its small preview under the mouse.  -->
+                        <MediaPlayerElement
+                            AreTransportControlsEnabled="False"
+                            AutoPlay="True"
+                            Loaded="PreviewPlayer_Loaded"
+                            Source="{x:Bind PreviewSource, Mode=OneWay}"
+                            Stretch="UniformToFill"
+                            Visibility="{x:Bind ShowVideoPreview, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+                        <!--  A quiet badge so a video is recognisable before hovering.  -->
+                        <Border
+                            Margin="8"
+                            Padding="7,3"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Bottom"
+                            Background="#99000000"
+                            CornerRadius="10"
+                            Visibility="{x:Bind IsVideo, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <FontIcon
+                                    FontSize="11"
+                                    Foreground="White"
+                                    Glyph="&#xE768;" />
+                                <TextBlock
+                                    FontSize="10"
+                                    Foreground="White"
+                                    Text="Video" />
+                            </StackPanel>
+                        </Border>
+
+                        <!--  Appears on hover so the card explains itself.  -->
+                        <Grid
+                            x:Name="HoverLayer"
+                            Background="#33000000"
+                            Opacity="0">
+                            <Border
+                                Padding="14,8"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="#D9000000"
+                                CornerRadius="18">
+                                <StackPanel Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon
+                                            FontSize="13"
+                                            Foreground="White"
+                                            Glyph="&#xE890;" />
+                                        <TextBlock
+                                            FontSize="12"
+                                            FontWeight="SemiBold"
+                                            Foreground="White"
+                                            Text="View wallpaper" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="#CCFFFFFF"
+                                        Text="{x:Bind SizeLabel}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Button
+                            x:Name="FavouriteButton"
+                            Width="34"
+                            Height="34"
+                            Margin="8"
+                            Padding="0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Background="#66000000"
+                            BorderThickness="0"
+                            Click="Favourite_Click"
+                            CornerRadius="17"
+                            Tag="{x:Bind}"
+                            ToolTipService.ToolTip="Save to favourites">
+                            <FontIcon
+                                FontSize="14"
+                                Foreground="White"
+                                Glyph="{x:Bind FavouriteGlyph, Mode=OneWay}" />
+                        </Button>
+
+                        <ProgressRing
+                            Width="32"
+                            Height="32"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsActive="{x:Bind IsApplying, Mode=OneWay}"
+                            Visibility="{x:Bind IsApplying, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+                        <FontIcon
+                            Margin="10"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            FontSize="14"
+                            Foreground="#CCFFFFFF"
+                            Glyph="&#xE7C5;"
+                            Visibility="{x:Bind Failed, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  Search, filters, surprise  -->
+        <Grid
+            Grid.Row="0"
+            Padding="20,14,20,8"
+            ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <AutoSuggestBox
+                x:Name="SearchBox"
+                Grid.Column="0"
+                PlaceholderText="Search wallpapers"
+                QueryIcon="Find"
+                QuerySubmitted="Search_QuerySubmitted" />
+
+            <Button
+                Grid.Column="1"
+                Click="Sources_Click"
+                ToolTipService.ToolTip="Choose which sites supply pictures">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                    <FontIcon FontSize="14" Glyph="&#xE774;" />
+                    <TextBlock Text="Sources" />
+                </StackPanel>
+            </Button>
+
+            <Button
+                Grid.Column="2"
+                Click="Filters_Click"
+                ToolTipService.ToolTip="{x:Bind ViewModel.FilterSummary, Mode=OneWay}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                    <FontIcon FontSize="14" Glyph="&#xE71C;" />
+                    <TextBlock Text="Filters" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <ScrollViewer
+                x:Name="FeedScroll"
+                Padding="18,0,18,16"
+                ViewChanged="FeedScroll_ViewChanged"
+                VerticalScrollBarVisibility="Auto">
+                <ItemsRepeater
+                    ItemTemplate="{StaticResource WallpaperTileTemplate}"
+                    ItemsSource="{x:Bind ViewModel.Tiles, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout
+                            ItemsStretch="Fill"
+                            MinColumnSpacing="0"
+                            MinItemHeight="200"
+                            MinItemWidth="240"
+                            MinRowSpacing="0"
+                            Orientation="Horizontal" />
+                    </ItemsRepeater.Layout>
+                </ItemsRepeater>
+            </ScrollViewer>
+
+            <ProgressRing
+                Width="42"
+                Height="42"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+            <ProgressRing
+                Width="28"
+                Height="28"
+                Margin="0,0,0,18"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                IsActive="{x:Bind ViewModel.IsLoadingMore, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.IsLoadingMore, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+            <StackPanel
+                MaxWidth="380"
+                Margin="0,60,0,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Spacing="8"
+                Visibility="{x:Bind ViewModel.IsEmpty, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                <FontIcon
+                    FontSize="34"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Glyph="&#xE7BA;"
+                    Opacity="0.6" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Opacity="0.85"
+                    Text="Nothing here yet. Try another search, or check your connection."
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
+                <Button
+                    HorizontalAlignment="Center"
+                    Command="{x:Bind ViewModel.RefreshCommand, Mode=OneWay}"
+                    Content="Try again" />
+            </StackPanel>
+        </Grid>
+
+        <InfoBar
+            Grid.Row="2"
+            Margin="16,0,16,4"
+            IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
+            Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+            Severity="Warning" />
+
+        <!--  A small, quiet line: time of day, weather and where pictures come from.  -->
+        <Border
+            Grid.Row="3"
+            Padding="20,5,20,7"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    FontSize="11"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Opacity="0.72"
+                    Text="{x:Bind ViewModel.FooterSummary, Mode=OneWay}"
+                    TextTrimming="CharacterEllipsis" />
+
+                <HyperlinkButton
+                    Grid.Column="1"
+                    Padding="0"
+                    VerticalAlignment="Center"
+                    Click="Sources_Click"
+                    Content="{x:Bind ViewModel.SourceSummary, Mode=OneWay}"
+                    FontSize="12"
+                    Opacity="0.8"
+                    ToolTipService.ToolTip="Choose which sites supply pictures" />
+            </Grid>
+        </Border>
+
+        <!--  Full-size preview. Sits over the feed until closed.  -->
+        <Grid
+            Grid.RowSpan="4"
+            Canvas.ZIndex="10"
+            Background="#FF101014"
+            Visibility="{x:Bind ViewModel.IsPreviewOpen, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid
+                Padding="24,14,24,10"
+                ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Spacing="2">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Foreground="White"
+                        Text="{x:Bind ViewModel.PreviewTitle, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis" />
+                    <HyperlinkButton
+                        Padding="0"
+                        Command="{x:Bind ViewModel.OpenPreviewSourceCommand, Mode=OneWay}"
+                        Content="{x:Bind ViewModel.PreviewSubtitle, Mode=OneWay}"
+                        FontSize="12"
+                        Foreground="#B3FFFFFF"
+                        IsEnabled="{x:Bind ViewModel.HasPreviewSourceLink, Mode=OneWay}"
+                        ToolTipService.ToolTip="Open the original page in your browser">
+                        <HyperlinkButton.ContentTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                                    <FontIcon FontSize="11" Glyph="&#xE8A7;" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </HyperlinkButton.ContentTemplate>
+                    </HyperlinkButton>
+                </StackPanel>
+
+                <Button
+                    Grid.Column="1"
+                    Width="40"
+                    Height="40"
+                    Padding="0"
+                    Background="#33FFFFFF"
+                    BorderThickness="0"
+                    Click="ClosePreview_Click"
+                    CornerRadius="20"
+                    ToolTipService.ToolTip="Close (Esc)">
+                    <FontIcon
+                        FontSize="14"
+                        Foreground="White"
+                        Glyph="&#xE711;" />
+                    <Button.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="Escape" />
+                    </Button.KeyboardAccelerators>
+                </Button>
+            </Grid>
+
+            <Grid
+                Grid.Row="1"
+                Margin="24,0,24,6">
+                <Image
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Source="{x:Bind ViewModel.PreviewImage, Mode=OneWay}"
+                    Stretch="Uniform" />
+
+                <ProgressRing
+                    Width="44"
+                    Height="44"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Foreground="#CCFFFFFF"
+                    IsActive="{x:Bind ViewModel.IsPreviewLoading, Mode=OneWay}"
+                    Visibility="{x:Bind ViewModel.IsPreviewLoading, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+                <Border
+                    Margin="0,0,0,8"
+                    Padding="14,10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Background="#CC2A1A1A"
+                    CornerRadius="8"
+                    Visibility="{x:Bind ViewModel.HasPreviewError, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock
+                        MaxWidth="620"
+                        Foreground="#FFFFB4B4"
+                        Text="{x:Bind ViewModel.PreviewError, Mode=OneWay}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                </Border>
+            </Grid>
+
+            <Grid
+                Grid.Row="2"
+                Padding="24,8,24,18"
+                ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel
+                    VerticalAlignment="Center"
+                    Spacing="3">
+                    <TextBlock
+                        FontSize="11"
+                        Foreground="#99FFFFFF"
+                        Text="{x:Bind ViewModel.PreviewMeta, Mode=OneWay}" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="#FF9BE49B"
+                        Text="{x:Bind ViewModel.PreviewNotice, Mode=OneWay}"
+                        Visibility="{x:Bind ViewModel.HasPreviewNotice, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                        Width="40"
+                        Height="40"
+                        Padding="0"
+                        Command="{x:Bind ViewModel.TogglePreviewFavouriteCommand, Mode=OneWay}"
+                        ToolTipService.ToolTip="Save to favourites">
+                        <FontIcon FontSize="15" Glyph="{x:Bind ViewModel.PreviewFavouriteGlyph, Mode=OneWay}" />
+                    </Button>
+
+                    <Button
+                        Command="{x:Bind ViewModel.ApplyPreviewLockScreenCommand, Mode=OneWay}"
+                        Content="Set lock screen"
+                        IsEnabled="{x:Bind ViewModel.CanPreviewApply, Mode=OneWay}" />
+
+                    <Button
+                        Command="{x:Bind ViewModel.ApplyPreviewDesktopCommand, Mode=OneWay}"
+                        Content="Set desktop"
+                        IsEnabled="{x:Bind ViewModel.CanPreviewApply, Mode=OneWay}"
+                        Style="{StaticResource AccentButtonStyle}" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

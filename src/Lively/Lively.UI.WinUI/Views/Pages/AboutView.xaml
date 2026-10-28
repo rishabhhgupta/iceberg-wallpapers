@@ -1,0 +1,64 @@
+﻿<Page
+    x:Class="Lively.UI.WinUI.Views.Pages.AboutView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Lively.UI.WinUI.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    MinWidth="500"
+    mc:Ignorable="d">
+
+    <Grid>
+        <ScrollViewer>
+            <StackPanel Margin="5,0,10,20" Spacing="10">
+                <Image
+                    Width="96"
+                    Height="96"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Source="ms-appx:///Assets/StoreLogo.scale-400.png" />
+
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    Text="Iceberg Wallpapers" />
+
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="Version 1.0" />
+
+                <TextBlock
+                    MaxWidth="420"
+                    HorizontalAlignment="Center"
+                    TextAlignment="Center"
+                    Text="Calm, high quality wallpapers from the sources you already love. Pick one, or let Iceberg change it for you."
+                    TextWrapping="Wrap" />
+
+                <StackPanel
+                    Margin="0,10,0,0"
+                    Padding="16"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Spacing="4">
+                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Credits" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Iceberg is a fork of Lively Wallpaper, which is free software under the GNU GPL v3."
+                        TextWrapping="Wrap" />
+                    <HyperlinkButton
+                        Content="Lively Wallpaper by Rocksdanister and contributors"
+                        NavigateUri="https://github.com/rocksdanister/lively" />
+                </StackPanel>
+
+                <StackPanel Margin="0,5,0,0" Spacing="2">
+                    <HyperlinkButton x:Name="ProjectLink" Content="Iceberg source code" />
+                    <HyperlinkButton x:Name="LicenseLink" Content="Licence (GNU GPL v3)" />
+                    <HyperlinkButton x:Name="PrivacyLink" Content="Privacy" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

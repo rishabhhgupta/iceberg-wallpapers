@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Lively.Sources</RootNamespace>
+    <AssemblyName>Lively.Sources</AssemblyName>
+  </PropertyGroup>
+
+  <!--
+    Keys are injected from a local, git-ignored file so the public repository
+    never contains one. Without that file the generated class is simply empty.
+  -->
+  <Import Project="..\..\..\secrets\ApiKeys.local.props"
+          Condition="Exists('..\..\..\secrets\ApiKeys.local.props')" />
+
+  <Target Name="GenerateApiKeys" BeforeTargets="BeforeCompile">
+    <ItemGroup>
+      <_ApiKeyLine Include="// &lt;auto-generated&gt; Built from secrets/ApiKeys.local.props. Do not edit." />
+      <_ApiKeyLine Include="namespace Lively.Sources" />
+      <_ApiKeyLine Include="{" />
+      <_ApiKeyLine Include="internal static class GeneratedApiKeys" />
+      <_ApiKeyLine Include="{" />
+      <_ApiKeyLine Include="public const string Wallhaven = &quot;$(IcebergWallhavenKey)&quot;%3B" />
+      <_ApiKeyLine Include="public const string Unsplash = &quot;$(IcebergUnsplashKey)&quot;%3B" />
+      <_ApiKeyLine Include="public const string Pixabay = &quot;$(IcebergPixabayKey)&quot;%3B" />
+      <_ApiKeyLine Include="}" />
+      <_ApiKeyLine Include="}" />
+    </ItemGroup>
+
+    <WriteLinesToFile File="$(IntermediateOutputPath)GeneratedApiKeys.g.cs"
+                      Lines="@(_ApiKeyLine)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)GeneratedApiKeys.g.cs" />
+      <FileWrites Include="$(IntermediateOutputPath)GeneratedApiKeys.g.cs" />
+    </ItemGroup>
+  </Target>
+
+</Project>
