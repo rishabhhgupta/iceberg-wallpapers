@@ -6,8 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:Lively.UI.WinUI.ViewModels"
-    Background="{x:Bind ViewModel.BackgroundBrush, Mode=OneWay}"
-    RequestedTheme="{x:Bind ViewModel.ElementTheme, Mode=OneWay}"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -34,17 +32,6 @@
                             Source="{x:Bind Image, Mode=OneWay}"
                             Stretch="UniformToFill" />
 
-                        <Border
-                            Height="76"
-                            VerticalAlignment="Bottom">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Offset="0" Color="#00000000" />
-                                    <GradientStop Offset="1" Color="#C0000000" />
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-
                         <Grid
                             x:Name="HoverLayer"
                             Background="#33000000"
@@ -64,28 +51,10 @@
                                         FontSize="12"
                                         FontWeight="SemiBold"
                                         Foreground="White"
-                                        Text="Preview" />
+                                        Text="View wallpaper" />
                                 </StackPanel>
                             </Border>
                         </Grid>
-
-                        <StackPanel
-                            Margin="12,0,12,10"
-                            VerticalAlignment="Bottom"
-                            Spacing="1">
-                            <TextBlock
-                                MaxLines="1"
-                                FontWeight="SemiBold"
-                                Foreground="White"
-                                Text="{x:Bind Title}"
-                                TextTrimming="CharacterEllipsis" />
-                            <TextBlock
-                                MaxLines="1"
-                                FontSize="11"
-                                Foreground="#CCFFFFFF"
-                                Text="{x:Bind Subtitle}"
-                                TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
 
                         <Button
                             Width="34"
@@ -132,11 +101,10 @@
             <TextBlock
                 FontSize="26"
                 FontWeight="SemiBold"
-                Foreground="{x:Bind ViewModel.TextBrush, Mode=OneWay}"
+                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                 Text="Favourites" />
             <TextBlock
-                Foreground="{x:Bind ViewModel.TextBrush, Mode=OneWay}"
-                Opacity="0.85"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
         </StackPanel>
 
@@ -174,13 +142,12 @@
                 Visibility="{x:Bind ViewModel.IsEmpty, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                 <FontIcon
                     FontSize="34"
-                    Foreground="{x:Bind ViewModel.TextBrush, Mode=OneWay}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Glyph="&#xE734;"
                     Opacity="0.6" />
                 <TextBlock
                     HorizontalAlignment="Center"
-                    Foreground="{x:Bind ViewModel.TextBrush, Mode=OneWay}"
-                    Opacity="0.85"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="Tap the star on any wallpaper in Home and it will wait for you here."
                     TextAlignment="Center"
                     TextWrapping="Wrap" />
@@ -214,11 +181,23 @@
                         Foreground="White"
                         Text="{x:Bind ViewModel.PreviewTitle, Mode=OneWay}"
                         TextTrimming="CharacterEllipsis" />
-                    <TextBlock
+                    <HyperlinkButton
+                        Padding="0"
+                        Command="{x:Bind ViewModel.OpenPreviewSourceCommand, Mode=OneWay}"
+                        Content="{x:Bind ViewModel.PreviewSubtitle, Mode=OneWay}"
                         FontSize="12"
                         Foreground="#B3FFFFFF"
-                        Text="{x:Bind ViewModel.PreviewSubtitle, Mode=OneWay}"
-                        TextTrimming="CharacterEllipsis" />
+                        IsEnabled="{x:Bind ViewModel.HasPreviewSourceLink, Mode=OneWay}"
+                        ToolTipService.ToolTip="Open the original page in your browser">
+                        <HyperlinkButton.ContentTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                                    <FontIcon FontSize="11" Glyph="&#xE8A7;" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </HyperlinkButton.ContentTemplate>
+                    </HyperlinkButton>
                 </StackPanel>
 
                 <Button

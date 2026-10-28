@@ -15,7 +15,7 @@
     <ScrollViewer Padding="24,16,24,32">
         <StackPanel
             MaxWidth="900"
-            HorizontalAlignment="Left"
+            HorizontalAlignment="Stretch"
             Spacing="22">
 
             <StackPanel Spacing="2">
@@ -43,7 +43,9 @@
                 <controls:SettingsCard
                     Description="Follow Windows, or force light or dark. Iceberg no longer tints itself from the wallpaper."
                     Header="Theme">
-                    <RadioButtons SelectedIndex="{x:Bind ViewModel.ThemeIndex, Mode=TwoWay}">
+                    <RadioButtons
+                        MaxColumns="3"
+                        SelectedIndex="{x:Bind ViewModel.ThemeIndex, Mode=TwoWay}">
                         <x:String>Follow Windows</x:String>
                         <x:String>Light</x:String>
                         <x:String>Dark</x:String>
@@ -79,7 +81,9 @@
                 <controls:SettingsCard
                     Description="Time of day changes twice a day; a timer counts the hours you choose."
                     Header="When should it change?">
-                    <RadioButtons SelectedIndex="{x:Bind ViewModel.RotationModeIndex, Mode=TwoWay}">
+                    <RadioButtons
+                        MaxColumns="2"
+                        SelectedIndex="{x:Bind ViewModel.RotationModeIndex, Mode=TwoWay}">
                         <x:String>Time of day</x:String>
                         <x:String>Timer</x:String>
                     </RadioButtons>
@@ -134,11 +138,15 @@
                 <controls:SettingsCard
                     Description="{x:Bind ViewModel.LockScreenSummary, Mode=OneWay}"
                     Header="Windows lock screen">
-                    <StackPanel Spacing="8">
+                    <StackPanel
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="10">
                         <Button Command="{x:Bind ViewModel.UseLastAsLockScreenCommand, Mode=OneWay}" Content="Use last wallpaper" />
-                        <ToggleSwitch
-                            Header="Change with rotation"
-                            IsOn="{x:Bind ViewModel.RotateLockScreenToo, Mode=TwoWay}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="Change with rotation" />
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.RotateLockScreenToo, Mode=TwoWay}" />
                     </StackPanel>
                 </controls:SettingsCard>
             </StackPanel>

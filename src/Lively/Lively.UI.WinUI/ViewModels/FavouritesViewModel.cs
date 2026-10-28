@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -32,7 +33,22 @@ namespace Lively.UI.WinUI.ViewModels
 
         public string Title => string.IsNullOrWhiteSpace(Item.Title) ? "Saved wallpaper" : Item.Title!;
 
-        public string Subtitle => SourceName;
+        public string Subtitle
+        {
+            get
+            {
+                var parts = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(Item.Category) &&
+                    !string.Equals(Item.Category, "all", StringComparison.OrdinalIgnoreCase))
+                {
+                    parts.Add(Item.Category!);
+                }
+
+                parts.Add(SourceName);
+                return string.Join(" · ", parts);
+            }
+        }
 
         [ObservableProperty]
         private ImageSource image;
@@ -102,6 +118,14 @@ namespace Lively.UI.WinUI.ViewModels
 
         [ObservableProperty]
         private string previewSubtitle = string.Empty;
+
+        [ObservableProperty]
+        private string previewPageUrl = string.Empty;
+
+        public bool HasPreviewSourceLink => !string.IsNullOrWhiteSpace(PreviewPageUrl);
+
+        partial void OnPreviewPageUrlChanged(string value) =>
+            OnPropertyChanged(nameof(HasPreviewSourceLink));
 
         [ObservableProperty]
         private string previewMeta = string.Empty;
@@ -259,8 +283,11 @@ namespace Lively.UI.WinUI.ViewModels
             var token = previewCts.Token;
 
             PreviewTile = tile;
-            PreviewTitle = tile.Title;
-            PreviewSubtitle = service.Registry.Get(tile.Item.SourceId)?.DisplayName ?? tile.Item.SourceId;
+            // The plan is explicit: the real name, or nothing at all. Never a
+            // filler word like "Saved wallpaper".
+            PreviewTitle = tile.Item.Title ?? string.Empty;
+            PreviewSubtitle = tile.Subtitle;
+            PreviewPageUrl = tile.Item.PageUrl ?? string.Empty;
             PreviewMeta = $"Saved {tile.Item.AddedAt.LocalDateTime:d MMM yyyy}";
             PreviewImage = tile.Image;
             PreviewError = null;
@@ -339,8 +366,25 @@ namespace Lively.UI.WinUI.ViewModels
             IsPreviewApplying = false;
             PreviewImage = null;
             PreviewTile = null;
+            PreviewPageUrl = string.Empty;
             PreviewNotice = null;
             PreviewError = null;
+        }
+
+        /// <summary>Opens the wallpaper's own page in the default browser.</summary>
+        [RelayCommand]
+        private async Task OpenPreviewSourceAsync()
+        {
+            if (string.IsNullOrWhiteSpace(PreviewPageUrl)) return;
+
+            try
+            {
+                await Windows.System.Launcher.LaunchUriAsync(new Uri(PreviewPageUrl));
+            }
+            catch (Exception ex)
+            {
+                PreviewError = ex.Message;
+            }
         }
 
         [RelayCommand]

@@ -41,10 +41,26 @@ public sealed class AtmosphereService
     private readonly TimeProvider _clock;
     private AtmosphereSnapshot? _current;
 
-    public AtmosphereService(IWeatherProvider weather, TimeProvider? clock = null)
+    public AtmosphereService(IWeatherProvider? weather, TimeProvider? clock = null)
     {
-        _weather = weather ?? throw new ArgumentNullException(nameof(weather));
+        // Iceberg does not use weather: the phase of the day comes from the
+        // clock alone. A null provider must therefore be a supported case, not
+        // a crash at startup.
+        _weather = weather ?? new NoWeatherProvider();
         _clock = clock ?? TimeProvider.System;
+    }
+
+    /// <summary>The "no weather" provider: always empty, never touches the network.</summary>
+    private sealed class NoWeatherProvider : IWeatherProvider
+    {
+        public TimeSpan MaxAge => TimeSpan.FromMinutes(15);
+
+        public Task<WeatherSnapshot?> CurrentAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<WeatherSnapshot?>(null);
+
+        public void Forget()
+        {
+        }
     }
 
     public AtmosphereSnapshot? Current => _current;

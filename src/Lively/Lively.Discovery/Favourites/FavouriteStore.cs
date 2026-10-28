@@ -14,6 +14,7 @@ public sealed record FavouriteItem
     public required string Id { get; init; }
     public required string SourceId { get; init; }
     public string? Title { get; init; }
+    public string? Category { get; init; }
     public string? PageUrl { get; init; }
     public string? ThumbnailUrl { get; init; }
     public string? FullUrl { get; init; }

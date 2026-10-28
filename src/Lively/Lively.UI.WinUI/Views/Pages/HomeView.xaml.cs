@@ -165,7 +165,11 @@ namespace Lively.UI.WinUI.Views.Pages
                 MinWidth = 300,
             };
 
-            var panel = new StackPanel { Spacing = 12 };
+            var panel = new StackPanel
+            {
+                Spacing = 12,
+                MinWidth = 420,
+            };
             panel.Children.Add(media);
             panel.Children.Add(sort);
             panel.Children.Add(orientation);
@@ -177,11 +181,16 @@ namespace Lively.UI.WinUI.Views.Pages
                 var enabled = ViewModel.Sources.Any(s => s.Id == source.Id && s.IsEnabled);
                 if (!enabled) continue;
 
+                panel.Children.Add(new MenuFlyoutSeparator
+                {
+                    Margin = new Thickness(0, 10, 0, 0),
+                });
+
                 panel.Children.Add(new TextBlock
                 {
                     Text = source.DisplayName,
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                    Margin = new Thickness(0, 14, 0, 2),
+                    Margin = new Thickness(0, 2, 0, 2),
                 });
 
                 if (source.Filters.Count == 0)

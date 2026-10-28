@@ -15,7 +15,7 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:winex="using:WinUIEx"
-    Title="Iceberg Wallpaper"
+    Title="Iceberg Wallpapers"
     Width="1180"
     Height="760"
     MinWidth="700"
@@ -45,8 +45,7 @@
             <DataTemplate x:Key="NavigationMainMenuItemTemplate">
                 <NavigationViewItem
                     Content="{Binding Name}"
-                    Tag="{Binding PageType}"
-                    Visibility="{Binding DataContext.IsSettingsPage, ElementName=Root, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Reverse}">
+                    Tag="{Binding PageType}">
                     <NavigationViewItem.InfoBadge>
                         <InfoBadge Visibility="{Binding IsAlert, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" Value="{Binding Alert}" />
                     </NavigationViewItem.InfoBadge>
@@ -99,7 +98,7 @@
                 Margin="4,0,0,0"
                 VerticalAlignment="Center"
                 Style="{StaticResource CaptionTextBlockStyle}"
-                Text="Iceberg Wallpaper" />
+                Text="Iceberg Wallpapers" />
         </Grid>
 
         <TeachingTip
@@ -187,7 +186,6 @@
                             </FontIcon>
                         </AppBarButton.Icon>
                     </AppBarButton>
-                    <AppBarSeparator />
                     <!--  Gallery Authorized  -->
                     <!--  Visibility="{Binding IsLoggedIn, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"  -->
                     <AppBarButton
@@ -267,23 +265,6 @@
                             </Flyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>
-                    <!--  Settings  -->
-                    <AppBarButton
-                        MaxWidth="50"
-                        Command="{Binding OpenSettingsCommand}"
-                        LabelPosition="Collapsed">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE713;" />
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-                    <!--  Secondary Menu  -->
-                    <CommandBar.SecondaryCommands>
-                        <AppBarButton x:Uid="Help" Command="{Binding OpenHelpCommand}">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE897;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
-                    </CommandBar.SecondaryCommands>
                 </CommandBar>
             </NavigationView.PaneFooter>
             <!--  content  -->

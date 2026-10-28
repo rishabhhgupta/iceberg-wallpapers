@@ -72,12 +72,23 @@ namespace Lively.UI.WinUI.ViewModels
             get
             {
                 var parts = new List<string>();
+                var category = Item.Category;
 
-                if (!string.IsNullOrWhiteSpace(Item.Category))
+                // Some sites report "all" when no category was chosen. That is
+                // not a category, so fall back to the kind of picture instead.
+                if (string.IsNullOrWhiteSpace(category) ||
+                    string.Equals(category, "all", StringComparison.OrdinalIgnoreCase))
                 {
-                    parts.Add(Item.Category!);
+                    category = Item.MediaType switch
+                    {
+                        WallpaperMediaType.Illustration => "Illustration",
+                        WallpaperMediaType.Video => "Video",
+                        WallpaperMediaType.Gif => "GIF",
+                        _ => "Photo",
+                    };
                 }
 
+                parts.Add(category);
                 parts.Add(SourceName);
                 return string.Join(" · ", parts);
             }
@@ -203,6 +214,7 @@ namespace Lively.UI.WinUI.ViewModels
         private string statusLine = "Getting things ready…";
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasError))]
         private string errorMessage;
 
         [ObservableProperty]
@@ -215,8 +227,9 @@ namespace Lively.UI.WinUI.ViewModels
         [ObservableProperty]
         private string greeting = "Welcome";
 
-        /// <summary>The small line at the bottom: greeting and what is happening.</summary>
-        public string FooterSummary => $"{Greeting} · {StatusLine}";
+        /// <summary>The small line at the bottom: greeting, plus a notice if one is showing.</summary>
+        public string FooterSummary =>
+            string.IsNullOrWhiteSpace(StatusLine) ? Greeting : $"{Greeting} · {StatusLine}";
 
         partial void OnGreetingChanged(string value) => OnPropertyChanged(nameof(FooterSummary));
 
@@ -320,28 +333,40 @@ namespace Lively.UI.WinUI.ViewModels
             if (isInitialised) return;
             isInitialised = true;
 
-            await service.InitializeAsync();
+            // Show the spinner, not the "nothing here" message, while the first
+            // page is still being fetched. Without this the page looks broken
+            // for the first few seconds of every launch.
+            IsLoading = true;
 
-            service.AtmosphereChanged += Service_AtmosphereChanged;
+            try
+            {
+                await service.InitializeAsync();
 
-            ApplyAtmosphere(service.Atmosphere.Current);
+                service.AtmosphereChanged += Service_AtmosphereChanged;
 
-            var settings = service.Current;
-            SortIndex = ParseSortIndex(settings.Sort);
-            OrientationIndex = ParseOrientationIndex(settings.Orientation);
-            MediaTypeIndex = ParseMediaIndex(settings.MediaType);
-            SourceFilters = settings.SourceFilters.ToDictionary(
-                pair => pair.Key,
-                pair => new Dictionary<string, string>(pair.Value, StringComparer.OrdinalIgnoreCase),
-                StringComparer.OrdinalIgnoreCase);
+                ApplyAtmosphere(service.Atmosphere.Current);
 
-            LoadSources();
-            UpdateFilterSummary();
-            UpdateSourceSummary();
+                var settings = service.Current;
+                SortIndex = ParseSortIndex(settings.Sort);
+                OrientationIndex = ParseOrientationIndex(settings.Orientation);
+                MediaTypeIndex = ParseMediaIndex(settings.MediaType);
+                SourceFilters = settings.SourceFilters.ToDictionary(
+                    pair => pair.Key,
+                    pair => new Dictionary<string, string>(pair.Value, StringComparer.OrdinalIgnoreCase),
+                    StringComparer.OrdinalIgnoreCase);
 
-            HookNetwork();
+                LoadSources();
+                UpdateFilterSummary();
+                UpdateSourceSummary();
 
-            await RefreshAsync();
+                HookNetwork();
+
+                await RefreshAsync();
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private static int ParseSortIndex(string? value) => value?.Trim().ToLowerInvariant() switch
@@ -494,15 +519,9 @@ namespace Lively.UI.WinUI.ViewModels
                 _ => "Welcome",
             };
 
-            StatusLine = snapshot.Phase switch
-            {
-                DayPhase.Night => "Night",
-                DayPhase.Dawn => "Dawn",
-                DayPhase.Morning => "Morning",
-                DayPhase.Afternoon => "Afternoon",
-                DayPhase.GoldenHour => "Evening",
-                _ => "Ready",
-            };
+            // The greeting already says the time of day, so the status line is
+            // kept free for real notices (for example "Wallpaper set").
+            StatusLine = string.Empty;
         }
 
         /// <summary>
@@ -519,17 +538,7 @@ namespace Lively.UI.WinUI.ViewModels
 
             if (StatusLine != notice) return;
 
-            StatusLine = service.Atmosphere.Current is { } snapshot
-                ? snapshot.Phase switch
-                {
-                    DayPhase.Night => "Night",
-                    DayPhase.Dawn => "Dawn",
-                    DayPhase.Morning => "Morning",
-                    DayPhase.Afternoon => "Afternoon",
-                    DayPhase.GoldenHour => "Evening",
-                    _ => "Ready",
-                }
-                : "Ready";
+            StatusLine = string.Empty;
         }
 
         private void UpdateSourceSummary()
@@ -837,7 +846,7 @@ namespace Lively.UI.WinUI.ViewModels
 
             PreviewTile = tile;
             PreviewTitle = tile.Title;
-            PreviewSubtitle = BuildPreviewSubtitle(tile.Item);
+            PreviewSubtitle = tile.Subtitle;
             PreviewPageUrl = tile.Item.PageUrl ?? string.Empty;
             PreviewMeta = BuildPreviewMeta(tile.Item);
             PreviewImage = tile.Image;
@@ -1031,6 +1040,7 @@ namespace Lively.UI.WinUI.ViewModels
                     Id = tile.Item.Key,
                     SourceId = tile.Item.SourceId,
                     Title = tile.Item.Title,
+                    Category = tile.Item.Category,
                     PageUrl = tile.Item.PageUrl,
                     ThumbnailUrl = tile.Item.Thumb,
                     FullUrl = tile.Item.FullUrl,

@@ -12,8 +12,13 @@ namespace Lively.UI.WinUI.Services
     {
         public static void Show(object sender, double opacity)
         {
-            if (sender is DependencyObject root
-                && FindChild(root, "HoverLayer") is UIElement layer)
+            UIElement? layer = null;
+            if (sender is DependencyObject root)
+            {
+                layer = FindChild(root, "HoverLayer");
+            }
+
+            if (layer is not null)
             {
                 layer.Opacity = opacity;
             }

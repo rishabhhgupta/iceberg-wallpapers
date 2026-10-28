@@ -114,7 +114,6 @@ namespace Lively.UI.WinUI.Services
             await LoadImportedMapAsync(cancellationToken).ConfigureAwait(false);
 
             BuildPipeline();
-
             Planner.Restore(Settings.Current.RecentKeys);
 
             IsInitialised = true;
