@@ -144,7 +144,7 @@ namespace Lively.UI.WinUI.Views.Pages
             var media = new ComboBox
             {
                 Header = "What kind",
-                ItemsSource = new[] { "Everything", "Photos", "Illustrations", "Videos", "GIFs" },
+                ItemsSource = new[] { "Everything", "Photos", "Illustrations", "Videos" },
                 SelectedIndex = ViewModel.MediaTypeIndex,
                 MinWidth = 300,
             };

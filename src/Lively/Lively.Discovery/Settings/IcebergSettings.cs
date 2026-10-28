@@ -30,7 +30,7 @@ public sealed record IcebergSettings
     /// <summary>Videos are large, so they only join the rotation when asked for.</summary>
     public bool AllowVideoInRotation { get; init; }
 
-    /// <summary>"any", "photo", "illustration", "video" or "gif". Chosen in Filters.</summary>
+    /// <summary>"any", "photo", "illustration", "video". Chosen in Filters.</summary>
     public string MediaType { get; init; } = "any";
 
     /// <summary>Per-source filter choices, keyed by source id then filter id.</summary>
@@ -83,7 +83,7 @@ public sealed record IcebergSettings
         CustomMinutes = Math.Clamp(CustomMinutes, 0, 59),
         RotationMode = OneOf(RotationMode, "timeofday", "timeofday", "timer"),
         TimerMode = OneOf(TimerMode, "daily", "daily", "every24", "custom"),
-        MediaType = OneOf(MediaType, "any", "any", "photo", "illustration", "video", "gif"),
+        MediaType = OneOf(MediaType, "any", "any", "photo", "illustration", "video"),
         Sort = OneOf(Sort, "featured", "featured", "top", "newest", "random"),
         Orientation = OneOf(Orientation, "landscape", "landscape", "portrait", "any"),
         EnabledSources = (EnabledSources ?? new()).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToList(),

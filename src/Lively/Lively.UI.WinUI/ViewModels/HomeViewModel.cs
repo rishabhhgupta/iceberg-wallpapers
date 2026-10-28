@@ -243,7 +243,7 @@ namespace Lively.UI.WinUI.ViewModels
         [ObservableProperty]
         private int orientationIndex;
 
-        // 0 = any, 1 = photos, 2 = illustrations, 3 = videos, 4 = GIFs.
+        // 0 = any, 1 = photos, 2 = illustrations, 3 = videos.
         [ObservableProperty]
         private int mediaTypeIndex;
 
@@ -389,7 +389,6 @@ namespace Lively.UI.WinUI.ViewModels
             "photo" => 1,
             "illustration" => 2,
             "video" => 3,
-            "gif" => 4,
             _ => 0,
         };
 
@@ -398,7 +397,6 @@ namespace Lively.UI.WinUI.ViewModels
             1 => "photo",
             2 => "illustration",
             3 => "video",
-            4 => "gif",
             _ => "any",
         };
 
@@ -453,7 +451,6 @@ namespace Lively.UI.WinUI.ViewModels
                 1 => "Photos",
                 2 => "Illustrations",
                 3 => "Videos",
-                4 => "GIFs",
                 _ => null,
             };
 
@@ -696,7 +693,6 @@ namespace Lively.UI.WinUI.ViewModels
                 1 => WallpaperMediaType.Photo,
                 2 => WallpaperMediaType.Illustration,
                 3 => WallpaperMediaType.Video,
-                4 => WallpaperMediaType.Gif,
                 _ => null,
             },
             SourceFilters = SourceFilters.ToDictionary(
@@ -791,7 +787,7 @@ namespace Lively.UI.WinUI.ViewModels
         {
             SortIndex = Math.Clamp(sortIndex, 0, 3);
             OrientationIndex = Math.Clamp(orientationIndex, 0, 2);
-            MediaTypeIndex = Math.Clamp(mediaTypeIndex, 0, 4);
+            MediaTypeIndex = Math.Clamp(mediaTypeIndex, 0, 3);
             SourceFilters = sourceFilters ?? new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
             UpdateFilterSummary();
 

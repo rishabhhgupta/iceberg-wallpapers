@@ -122,7 +122,7 @@
 
                 <controls:SettingsCard
                     Description="Videos are much larger downloads, so they stay out of the rotation until you allow them."
-                    Header="Allow videos and GIFs in rotation">
+                    Header="Allow videos in rotation">
                     <ToggleSwitch IsOn="{x:Bind ViewModel.AllowVideoInRotation, Mode=TwoWay}" />
                 </controls:SettingsCard>
 
