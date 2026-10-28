@@ -462,6 +462,25 @@ namespace Lively.UI.WinUI.Services
 
         private async Task RotationLoopAsync(CancellationToken cancellationToken)
         {
+            try
+            {
+                // Check once at start-up instead of waiting a whole minute: this
+                // is what catches a sunrise or sunset that happened while the PC
+                // was off. A short pause lets the saved wallpaper finish restoring
+                // first, so the rotation replaces a picture rather than racing it.
+                await Task.Delay(TimeSpan.FromSeconds(8), cancellationToken).ConfigureAwait(false);
+                await RotationTickAsync(cancellationToken).ConfigureAwait(false);
+                await AtmosphereTickAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Start-up rotation check failed: {ex.Message}");
+            }
+
             using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
 
             try

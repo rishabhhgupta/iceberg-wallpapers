@@ -131,18 +131,13 @@
         <NavigationView
             x:Name="navView"
             Grid.Row="1"
-            IsBackButtonVisible="{Binding IsSettingsPage, Mode=OneWay, Converter={StaticResource BoolToBackButtonVisibilityConverter}}"
+            IsBackButtonVisible="Collapsed"
             IsBackEnabled="True"
             IsSettingsVisible="False"
             MenuItemTemplateSelector="{StaticResource NavigationMenuItemTemplateSelector}"
             MenuItemsSource="{Binding MenuItems, Mode=OneWay}"
             PaneDisplayMode="Top"
             SelectedItem="{Binding SelectedMenuItem, Mode=TwoWay}">
-            <Interactivity:Interaction.Behaviors>
-                <Interactivity:EventTriggerBehavior EventName="BackRequested">
-                    <Interactivity:InvokeCommandAction Command="{Binding OpenHomeCommand}" />
-                </Interactivity:EventTriggerBehavior>
-            </Interactivity:Interaction.Behaviors>
             <!--  Footer  -->
             <NavigationView.PaneFooter>
                 <!--  Add Wallpaper  -->
@@ -150,6 +145,20 @@
                     Name="navCommandBar"
                     DefaultLabelPosition="Right"
                     Visibility="{Binding IsSettingsPage, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}">
+                    <AppBarButton
+                        x:Name="surpriseLabel"
+                        MaxWidth="50"
+                        Click="Surprise_Click"
+                        LabelPosition="Collapsed">
+                        <ToolTipService.ToolTip>
+                            <ToolTip>
+                                <TextBlock Text="Surprise me" />
+                            </ToolTip>
+                        </ToolTipService.ToolTip>
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8B1;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
                     <AppBarButton
                         x:Name="addWallpaperLabel"
                         x:Uid="AddWallpaper"

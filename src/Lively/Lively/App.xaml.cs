@@ -181,11 +181,10 @@ namespace Lively
                 Services.GetRequiredService<IDesktopCore>().RestoreWallpaper();
             }
 
-            // First run setup wizard show. A packaged app is opened from its tile,
-            // so returning users expect a window too; a log-in start-up should
-            // stay quiet in the notification area.
-            var showWindowOnStart = userSettings.Settings.IsFirstRun ||
-                (PackageUtil.IsRunningAsPackaged && WasOpenedByUser());
+            // First run setup wizard show. A log-in start must never put a window
+            // on screen: Windows gives a packaged start-up task no argument we
+            // can read, so compare the process start with the log-on time.
+            var showWindowOnStart = userSettings.Settings.IsFirstRun || !StartedAtLogon();
             if (showWindowOnStart)
             {
                 Services.GetRequiredService<IRunnerService>().ShowUI();
@@ -193,7 +192,7 @@ namespace Lively
             else if (PackageUtil.IsRunningAsPackaged && IcebergRotationEnabled())
             {
                 // Windows started us at log-in and rotation is on. Keep the timer
-                // alive with the window in the taskbar instead of not at all.
+                // alive with the window hidden: the tray icon is the only trace.
                 Services.GetRequiredService<IRunnerService>().ShowUIMinimized();
             }
 
@@ -233,25 +232,54 @@ namespace Lively
         }
 
         /// <summary>
-        /// True when the window was opened from the Windows shell (Start menu,
-        /// app tile or desktop). A log-in start-up is launched by Windows itself,
-        /// so its parent is not Explorer and no window pops up at log-in.
+        /// True when this process was started in the first few minutes after the
+        /// person logged on. That is the window in which Windows runs the
+        /// start-up task, and the one case where no window may appear.
         /// </summary>
-        private static bool WasOpenedByUser()
+        private static bool StartedAtLogon()
         {
             try
             {
-                var parentId = GetParentProcessId(Environment.ProcessId);
-                if (parentId == 0) return false;
+                var logon = GetLogonTime();
+                if (logon is null) return false;
 
-                using var parent = Process.GetProcessById(parentId);
-                return string.Equals(parent.ProcessName, "explorer", StringComparison.OrdinalIgnoreCase);
+                return DateTime.Now - logon.Value < TimeSpan.FromMinutes(3);
             }
             catch
             {
                 return false;
             }
         }
+
+        private static DateTime? GetLogonTime()
+        {
+            // WTSLogonTime = 14, WTS_CURRENT_SESSION = -1.
+            if (!WTSQuerySessionInformationW(IntPtr.Zero, -1, 14, out var buffer, out var bytes) || bytes < 8)
+            {
+                return null;
+            }
+
+            try
+            {
+                var fileTime = Marshal.ReadInt64(buffer);
+                return DateTime.FromFileTimeUtc(fileTime).ToLocalTime();
+            }
+            finally
+            {
+                WTSFreeMemory(buffer);
+            }
+        }
+
+        [DllImport("wtsapi32.dll", SetLastError = true)]
+        private static extern bool WTSQuerySessionInformationW(
+            IntPtr server,
+            int sessionId,
+            int infoClass,
+            out IntPtr buffer,
+            out int bytesReturned);
+
+        [DllImport("wtsapi32.dll")]
+        private static extern void WTSFreeMemory(IntPtr memory);
 
         /// <summary>
         /// Reads Iceberg's own settings to find out whether wallpapers should

@@ -442,70 +442,100 @@ namespace Lively.Core
             //Only consider PrimaryScreen for calculating average color
             var thumbRequiredAvgColor = (userSettings.Settings.SystemTaskbarTheme == TaskbarTheme.wallpaper || userSettings.Settings.SystemTaskbarTheme == TaskbarTheme.wallpaperFluent)
                 && (!displayManager.IsMultiScreen() || userSettings.Settings.WallpaperArrangement == WallpaperArrangement.span || wallpaper.Screen.IsPrimary);
-            if (userSettings.Settings.DesktopAutoWallpaper || thumbRequiredAvgColor)
+
+            if (!userSettings.Settings.DesktopAutoWallpaper && !thumbRequiredAvgColor)
+            {
+                return;
+            }
+
+            var picturePath = await ResolveDesktopPicturePathAsync(wallpaper);
+
+            //set accent color of taskbar..
+            if (thumbRequiredAvgColor && picturePath is not null)
             {
                 try
                 {
-                    // Desktop-bridge redirection not working IDesktopWallpaper COM/SystemParametersInfo.
-                    var resolvedScreenshotDir = PackageUtil.ValidateAndResolvePath(Constants.CommonPaths.ScreenshotDir);
-                    var imgPath = Path.Combine(resolvedScreenshotDir, Path.GetRandomFileName() + ".jpg");
-                    await wallpaper.ScreenCapture(imgPath);
-
-                    //set accent color of taskbar..
-                    if (thumbRequiredAvgColor)
-                    {
-                        try
-                        {
-                            var color = await Task.Run(() => ttbService.GetAverageColor(imgPath));
-                            ttbService.SetAccentColor(color);
-                        }
-                        catch (Exception ie1)
-                        {
-                            Logger.Error($"Failed to set taskbar accent: {ie1.Message}");
-                        }
-                    }
-
-                    //set desktop picture wallpaper..
-                    if (userSettings.Settings.DesktopAutoWallpaper)
-                    {
-                        if (true)//displayManager.IsMultiScreen())
-                        {
-                            //Has transition animation..
-                            var desktop = (IDesktopWallpaper)new DesktopWallpaperClass();
-                            DesktopWallpaperPosition scaler = DesktopWallpaperPosition.Fill;
-                            switch (userSettings.Settings.WallpaperScaling)
-                            {
-                                case WallpaperScaler.none:
-                                    scaler = DesktopWallpaperPosition.Center;
-                                    break;
-                                case WallpaperScaler.fill:
-                                    scaler = DesktopWallpaperPosition.Stretch;
-                                    break;
-                                case WallpaperScaler.uniform:
-                                    scaler = DesktopWallpaperPosition.Fit;
-                                    break;
-                                case WallpaperScaler.uniformFill:
-                                    //not exaclty the same, lively's uniform fill pivot is topleft whereas for windows its center.
-                                    scaler = DesktopWallpaperPosition.Fill;
-                                    break;
-                            }
-                            desktop.SetPosition(userSettings.Settings.WallpaperArrangement == WallpaperArrangement.span ? DesktopWallpaperPosition.Span : scaler);
-                            desktop.SetWallpaper(userSettings.Settings.WallpaperArrangement == WallpaperArrangement.span ? null : wallpaper.Screen.DeviceId, imgPath);
-                        }
-                        else
-                        {
-                            //No transition animation..
-                            _ = NativeMethods.SystemParametersInfo(NativeMethods.SPI_SETDESKWALLPAPER,
-                                0,
-                                imgPath,
-                                NativeMethods.SPIF_UPDATEINIFILE | NativeMethods.SPIF_SENDWININICHANGE);
-                        }
-                    }
+                    var color = await Task.Run(() => ttbService.GetAverageColor(picturePath));
+                    ttbService.SetAccentColor(color);
                 }
-                catch (Exception ie2)
+                catch (Exception ex)
                 {
-                    Logger.Error($"Failed to set lockscreen/desktop wallpaper: {ie2.Message}");
+                    Logger.Error($"Failed to set taskbar accent: {ex.Message}");
                 }
+            }
+
+            //set desktop picture wallpaper..
+            if (userSettings.Settings.DesktopAutoWallpaper && picturePath is not null)
+            {
+                await SetWindowsWallpaperAsync(picturePath);
+            }
+        }
+
+        /// <summary>
+        /// A picture wallpaper already is a file, so Windows is handed that file
+        /// directly: no screenshot, no monitor device id, and none of the
+        /// screenshot code that throws for still pictures. Only a video or web
+        /// wallpaper needs a frame captured first.
+        /// </summary>
+        private async Task<string> ResolveDesktopPicturePathAsync(IWallpaper wallpaper)
+        {
+            if (wallpaper.Category == WallpaperType.picture &&
+                wallpaper.Model?.FilePath is { Length: > 0 } filePath &&
+                File.Exists(filePath))
+            {
+                return filePath;
+            }
+
+            try
+            {
+                var resolvedScreenshotDir = PackageUtil.ValidateAndResolvePath(Constants.CommonPaths.ScreenshotDir);
+                var imgPath = Path.Combine(resolvedScreenshotDir, Path.GetRandomFileName() + ".jpg");
+                await wallpaper.ScreenCapture(imgPath);
+                return imgPath;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to capture the wallpaper for the desktop: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Sets the Windows desktop picture. A packaged app is expected to use
+        /// UserProfilePersonalizationSettings; the old SystemParametersInfo call
+        /// remains as the fallback for the unpackaged build.
+        /// </summary>
+        private async Task SetWindowsWallpaperAsync(string path)
+        {
+            if (PackageUtil.IsRunningAsPackaged)
+            {
+                try
+                {
+                    var personalization = Windows.System.UserProfile.UserProfilePersonalizationSettings.Current;
+                    if (personalization is not null)
+                    {
+                        var file = await Windows.Storage.StorageFile.GetFileFromPathAsync(path);
+                        if (await personalization.TrySetWallpaperImageAsync(file))
+                        {
+                            return;
+                        }
+
+                        Logger.Warn("Windows refused the desktop picture; falling back to SystemParametersInfo.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn($"Personalization API failed: {ex.Message}; falling back to SystemParametersInfo.");
+                }
+            }
+
+            if (NativeMethods.SystemParametersInfo(
+                NativeMethods.SPI_SETDESKWALLPAPER,
+                0,
+                path,
+                NativeMethods.SPIF_UPDATEINIFILE | NativeMethods.SPIF_SENDWININICHANGE) == 0)
+            {
+                Logger.Error(LogUtil.GetWin32Error("Failed to set the desktop picture"));
             }
         }
 
@@ -853,7 +883,10 @@ namespace Lively.Core
 
         private void RestoreWallpaper(List<WallpaperLayoutModel> wallpaperLayout)
         {
-            foreach (var layout in wallpaperLayout)
+            // Restoring starts wallpapers in the background, and each one saves
+            // the layout. Reading the same list that gets rewritten underneath is
+            // what produced "Collection was modified". A copy cannot change.
+            foreach (var layout in wallpaperLayout.ToList())
             {
                 LibraryModel libraryItem = null;
                 try
@@ -892,7 +925,7 @@ namespace Lively.Core
         {
             try
             {
-                var wallpaperLayout = userSettings.WallpaperLayout;
+                var wallpaperLayout = userSettings.WallpaperLayout.ToList();
                 if (userSettings.Settings.WallpaperArrangement == WallpaperArrangement.span ||
                     userSettings.Settings.WallpaperArrangement == WallpaperArrangement.duplicate)
                 {

@@ -129,11 +129,11 @@ namespace Lively.UI.WinUI
                 m_window.Activate();
 
                 // A log-in start keeps rotation alive without stealing the screen.
-                // Defer the minimize until the window has finished showing; asking
-                // too early lets Windows ignore it and the window pops up anyway.
+                // Hide rather than minimise: a minimised window leaves a taskbar
+                // button, and the tray icon is meant to be the only trace.
                 if (StartFlags.Minimized)
                 {
-                    m_window.DispatcherQueue.TryEnqueue(() => m_window.Minimize());
+                    m_window.DispatcherQueue.TryEnqueue(() => m_window.Hide());
                 }
             }
         }

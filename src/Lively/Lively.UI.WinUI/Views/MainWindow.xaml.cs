@@ -1,4 +1,4 @@
-﻿using Lively.Common.Helpers.Pinvoke;
+using Lively.Common.Helpers.Pinvoke;
 using Lively.Common.Services;
 using Lively.Grpc.Client;
 using Lively.Models;
@@ -12,6 +12,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -69,9 +70,9 @@ namespace Lively.UI.WinUI
             navigator.Frame = contentFrame;
             this.SystemBackdrop = new MicaBackdrop();
 
-            // Paint the space behind every page with the time-of-day colours so
-            // Home, Favourites and Settings all feel like one app.
-            ApplyAtmosphereColors();
+            // Back walks the real history instead of always jumping Home.
+            navView.BackRequested += NavView_BackRequested;
+            contentFrame.Navigated += ContentFrame_Navigated;
 
             // A window taller than the screen is worse than a smaller one.
             Root.Loaded += (_, _) => FitToScreen();
@@ -134,25 +135,6 @@ namespace Lively.UI.WinUI
             this.Width = Math.Max(Math.Min(this.Width, maxWidth), this.MinWidth);
             this.Height = Math.Max(Math.Min(this.Height, maxHeight), this.MinHeight);
             this.CenterOnScreen();
-        }
-
-        private void ApplyAtmosphereColors()
-        {
-            if (App.Services.GetService(typeof(IcebergService)) is not IcebergService iceberg)
-            {
-                return;
-            }
-
-            if (iceberg.Atmosphere?.Current is { } snapshot)
-            {
-                contentFrame.Background = PaletteBrushes.Background(snapshot.Palette);
-            }
-
-            iceberg.AtmosphereChanged += (_, next) =>
-            {
-                _ = DispatcherQueue.TryEnqueue(() =>
-                    contentFrame.Background = PaletteBrushes.Background(next.Palette));
-            };
         }
 
         private void DesktopCore_WallpaperChanged(object sender, EventArgs e)
@@ -223,7 +205,7 @@ namespace Lively.UI.WinUI
                 // taskbar keeps wallpapers changing; the tray icon brings the
                 // window back. Turning rotation off makes Close exit again.
                 args.Handled = true;
-                NativeMethods.ShowWindow(this.GetWindowHandleEx(), (uint)NativeMethods.SHOWWINDOW.SW_MINIMIZE);
+                NativeMethods.ShowWindow(this.GetWindowHandleEx(), (uint)NativeMethods.SHOWWINDOW.SW_HIDE);
             }
             else
             {
@@ -341,5 +323,37 @@ namespace Lively.UI.WinUI
         }
 
         private void WebViewRequired_InfoBar_Closed(InfoBar sender, InfoBarClosedEventArgs args) => sender.IsOpen = false;
+
+        private void NavView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
+        {
+            if (contentFrame.CanGoBack)
+            {
+                contentFrame.GoBack();
+            }
+        }
+
+        private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
+        {
+            // The arrow is hidden on Home because there is nothing behind it,
+            // and shown everywhere else only when there is somewhere to go back to.
+            navView.IsBackButtonVisible = contentFrame.CanGoBack && e.SourcePageType != typeof(HomeView)
+                ? NavigationViewBackButtonVisible.Visible
+                : NavigationViewBackButtonVisible.Collapsed;
+        }
+
+        /// <summary>One wallpaper, right now, from the enabled sources.</summary>
+        private async void Surprise_Click(object sender, RoutedEventArgs e)
+        {
+            if (App.Services.GetService(typeof(IcebergService)) is not IcebergService iceberg) return;
+
+            try
+            {
+                await iceberg.ApplyNextAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+            }
+        }
     }
 }
