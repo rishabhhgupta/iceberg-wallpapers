@@ -74,23 +74,7 @@
             </Interactivity:EventTriggerBehavior>
         </Interactivity:Interaction.Behaviors>
 
-        <!--  Custom background  -->
-        <Image
-            x:Name="backgroundImage"
-            Grid.RowSpan="2"
-            Source="{Binding AppThemeBackground, Mode=OneWay}"
-            Stretch="UniformToFill"
-            Visibility="{Binding AppThemeBackground, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
-        <Rectangle
-            Grid.Row="0"
-            Fill="{ThemeResource SystemAltMediumColor}"
-            Stretch="Fill"
-            Visibility="{Binding AppThemeBackground, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
-        <Rectangle
-            Grid.RowSpan="2"
-            Fill="{ThemeResource SystemControlAcrylicElementBrush}"
-            Stretch="Fill"
-            Visibility="{Binding AppThemeBackground, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
+        <!--  No custom background: the window uses plain Mica and follows Windows.  -->
 
         <Grid x:Name="AppTitleBar" Height="48">
             <Grid.ColumnDefinitions>
@@ -294,20 +278,9 @@
                     </AppBarButton>
                     <!--  Secondary Menu  -->
                     <CommandBar.SecondaryCommands>
-                        <!--  Issue: Language culture not changing?  -->
-                        <AppBarButton x:Uid="Theme" Command="{Binding OpenAppThemeCommand}">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE790;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
                         <AppBarButton x:Uid="Help" Command="{Binding OpenHelpCommand}">
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE897;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
-                        <AppBarButton x:Uid="About" Command="{Binding OpenAboutCommand}">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE90A;" />
                             </AppBarButton.Icon>
                         </AppBarButton>
                     </CommandBar.SecondaryCommands>
