@@ -1,4 +1,4 @@
-﻿using Lively.Common.Helpers;
+using Lively.Common.Helpers;
 using Lively.Models.Enums;
 using System;
 using System.IO;
@@ -23,8 +23,8 @@ namespace Lively.Common
             public static string MusicAppExclusionRulesPath { get; } = Path.Combine(AppDataDir, "MusicAppExclusionRules.json");
             public static string WeatherSettingsPath { get; } = Path.Combine(AppDataDir, "WeatherSettings.json");
             public static string ThemeDir { get; } = Path.Combine(AppDataDir, "Themes");
-            public static string ThemeCacheDir { get; } = Path.Combine(Path.GetTempPath(), "Lively Wallpaper", "themes");
-            public static string CefRootCacheDir { get; } = Path.Combine(Path.GetTempPath(), "Lively Wallpaper", "CEF");
+            public static string ThemeCacheDir { get; } = Path.Combine(Path.GetTempPath(), "Iceberg Wallpaper", "themes");
+            public static string CefRootCacheDir { get; } = Path.Combine(Path.GetTempPath(), "Iceberg Wallpaper", "CEF");
             public static string TokensPath { get; } = Path.Combine(AppDataDir, "Tokens.dat");
             public static string ScreenshotDir { get; } = Path.Combine(AppDataDir, "Screenshots");
         }
@@ -70,14 +70,14 @@ namespace Lively.Common
 
         public static class SingleInstance
         {
-            public static string UniqueAppName { get; } = "LIVELY:DESKTOPWALLPAPERSYSTEM";
+            public static string UniqueAppName { get; } = "ICEBERG:DESKTOPWALLPAPERSYSTEM";
             public static string PipeServerName { get; } = UniqueAppName + Environment.UserName; //backward compatibility < v1.9
             public static string GrpcPipeServerName { get; } = "Grpc_" + PipeServerName;
         }
         
         public static class ApplicationType
         {
-            public static string Name { get; } = "Lively Wallpaper";
+            public static string Name { get; } = "Iceberg Wallpaper";
             public static bool IsTestBuild { get; } = false;
         }
 

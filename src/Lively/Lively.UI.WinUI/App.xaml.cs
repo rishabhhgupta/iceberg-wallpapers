@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using Lively.Common.Factories;
 using Lively.Common.Helpers;
 using Lively.Common.Helpers.Pinvoke;
@@ -49,26 +49,50 @@ namespace Lively.UI.WinUI
 
         public static StartArgs StartFlags { get; private set; } = new();
 
+        public static void LogUi(string msg)
+        {
+            try
+            {
+                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Iceberg Wallpaper");
+                Directory.CreateDirectory(dir);
+                File.AppendAllText(Path.Combine(dir, "ui-startup.log"), $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\r\n");
+            }
+            catch { }
+        }
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
         public App()
         {
-            if (!AppLifeCycleUtil.IsAppMutexRunning(SingleInstance.UniqueAppName))
+            LogUi("App() constructor started");
+            try
             {
-                _ = NativeMethods.MessageBox(IntPtr.Zero, "Wallpaper core is not running, run Iceberg.exe first before opening UI.", "Iceberg Wallpapers", 16);
-                //Sad dev noises.. this.Exit() does not work without Window: https://github.com/microsoft/microsoft-ui-xaml/issues/5931
-                Process.GetCurrentProcess().Kill();
+                if (!AppLifeCycleUtil.IsAppMutexRunning(SingleInstance.UniqueAppName))
+                {
+                    LogUi("Core mutex not running, exiting");
+                    _ = NativeMethods.MessageBox(IntPtr.Zero, "Wallpaper core is not running, run Iceberg.exe first before opening UI.", "Iceberg Wallpapers", 16);
+                    //Sad dev noises.. this.Exit() does not work without Window: https://github.com/microsoft/microsoft-ui-xaml/issues/5931
+                    Process.GetCurrentProcess().Kill();
+                }
+
+                LogUi("Calling InitializeComponent");
+                this.InitializeComponent();
+                LogUi("Configuring services");
+                _serviceProvider = ConfigureServices();
+                LogUi("Getting IUserSettingsClient");
+                var userSettings = Services.GetRequiredService<IUserSettingsClient>();
+                SetAppTheme(userSettings.Settings.ApplicationTheme);
+
+                SetupUnhandledExceptionLogging();
+                LogUi("App() constructor completed");
             }
-
-            this.InitializeComponent();
-            _serviceProvider = ConfigureServices();
-            var userSettings = Services.GetRequiredService<IUserSettingsClient>();
-            SetAppTheme(userSettings.Settings.ApplicationTheme);
-            //Services.GetRequiredService<SettingsViewModel>().AppThemeChanged += (s, e) => SetAppTheme(e);
-
-            SetupUnhandledExceptionLogging();
+            catch (Exception ex)
+            {
+                LogUi($"FATAL in App() ctor: {ex}");
+                throw;
+            }
         }
 
         /// <summary>
@@ -120,20 +144,27 @@ namespace Lively.UI.WinUI
                 }
                 else if (StartFlags.Minimized)
                 {
+                    LogUi("OnLaunched: Minimized start");
                     // Started minimized: initialize window & services so tray and rotation work,
                     // but do not activate or show on screen.
                     _ = Services.GetRequiredService<MainWindow>();
                 }
                 else
                 {
+                    LogUi("OnLaunched: Showing MainWindow");
                     var m_window = Services.GetRequiredService<MainWindow>();
+                    m_window.AppWindow.Show();
                     m_window.Activate();
+                    LogUi("OnLaunched: MainWindow shown & activated");
                 }
             }
             else
             {
+                LogUi("OnLaunched: No args, showing MainWindow");
                 var m_window = Services.GetRequiredService<MainWindow>();
+                m_window.AppWindow.Show();
                 m_window.Activate();
+                LogUi("OnLaunched: MainWindow shown & activated");
             }
         }
 
@@ -161,7 +192,7 @@ namespace Lively.UI.WinUI
                 .AddSingleton<GalleryViewModel>()
                 .AddSingleton<GallerySubscriptionViewModel>()
                 .AddSingleton<AppUpdateViewModel>()
-                .AddSingleton<ICacheService, DiskCacheService>((e) => new DiskCacheService(e.GetRequiredService<IHttpClientFactory>(), Path.Combine(Path.GetTempPath(), "Lively Wallpaper", "gallery")))
+                .AddSingleton<ICacheService, DiskCacheService>((e) => new DiskCacheService(e.GetRequiredService<IHttpClientFactory>(), Path.Combine(Path.GetTempPath(), "Iceberg Wallpaper", "gallery")))
                 .AddSingleton<IDepthEstimate, MiDaS>()
                 // Scoped
                 .AddScoped<IDialogNavigator, DialogNavigator>()

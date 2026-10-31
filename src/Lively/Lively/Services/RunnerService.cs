@@ -32,14 +32,28 @@ namespace Lively.Services
                 Logger.Warn("Process is running elevated, UI may not function properly.");
             }
 
-            if (PackageUtil.IsRunningAsPackaged)
+            var packagedPath = Path.Combine(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\")), "Iceberg.UI.exe");
+            var unpackagedPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins", "UI", "Iceberg.UI.exe");
+            var localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Iceberg.UI.exe");
+
+            if (PackageUtil.IsRunningAsPackaged || File.Exists(packagedPath))
             {
-                fileName = Path.Combine(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\")), "Iceberg.UI.exe");
+                fileName = packagedPath;
                 workingDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\"));
+            }
+            else if (File.Exists(unpackagedPath))
+            {
+                fileName = unpackagedPath;
+                workingDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins", "UI");
+            }
+            else if (File.Exists(localPath))
+            {
+                fileName = localPath;
+                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
             }
             else
             {
-                fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins", "UI", "Iceberg.UI.exe");
+                fileName = unpackagedPath;
                 workingDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins", "UI");
             }
         }

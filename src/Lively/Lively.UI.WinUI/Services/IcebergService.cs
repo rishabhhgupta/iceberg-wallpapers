@@ -68,7 +68,13 @@ namespace Lively.UI.WinUI.Services
             // Some picture sites refuse requests that do not say who is asking.
             imageHttp.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "IcebergWallpaper/1.0 (+https://icebergwallpaper.app)");
 
-            Settings = new IcebergSettingsStore(Path.Combine(DataDirectory, "settings.json"));
+            var icebergSettingsFile = Path.Combine(DataDirectory, "IcebergSettings.json");
+            var oldSettingsFile = Path.Combine(DataDirectory, "settings.json");
+            if (!File.Exists(icebergSettingsFile) && File.Exists(oldSettingsFile))
+            {
+                try { File.Copy(oldSettingsFile, icebergSettingsFile); } catch { }
+            }
+            Settings = new IcebergSettingsStore(icebergSettingsFile);
             Favourites = new FavouriteStore(Path.Combine(DataDirectory, "favourites.json"));
         }
 

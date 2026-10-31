@@ -88,7 +88,7 @@ namespace Lively.UI.WinUI
                 titleBar.ExtendsContentIntoTitleBar = true;
                 titleBar.ButtonBackgroundColor = Colors.Transparent;
                 titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-                titleBar.ButtonForegroundColor = ((SolidColorBrush)App.Current.Resources["WindowCaptionForeground"]).Color;
+                if (App.Current.Resources.TryGetValue("WindowCaptionForeground", out var fg) && fg is SolidColorBrush scb) titleBar.ButtonForegroundColor = scb.Color;
 
                 AppTitleBar.Loaded += AppTitleBar_Loaded;
                 AppTitleBar.SizeChanged += AppTitleBar_SizeChanged;

@@ -80,7 +80,7 @@ namespace Lively
                     }
                     catch (Exception e)
                     {
-                        _ = MessageBox.Show($"Failed to communicate with Core:\n{e.Message}", "Lively Wallpaper");
+                        _ = MessageBox.Show($"Failed to communicate with Core:\n{e.Message}", "Iceberg Wallpapers");
                     }
                     QuitApp();
                     return;
@@ -185,7 +185,8 @@ namespace Lively
             // on screen: Windows gives a packaged start-up task no argument we
             // can read, so compare the process start with the log-on time.
             var isStartupLaunch = commandArgs.Any(a => a.Equals("--startup", StringComparison.OrdinalIgnoreCase) || a.Equals("--minimized", StringComparison.OrdinalIgnoreCase));
-            var showWindowOnStart = userSettings.Settings.IsFirstRun || (!isStartupLaunch && !StartedAtLogon());
+            var isPackagedLogon = PackageUtil.IsRunningAsPackaged && StartedAtLogon();
+            var showWindowOnStart = userSettings.Settings.IsFirstRun || (!isStartupLaunch && !isPackagedLogon);
             if (showWindowOnStart)
             {
                 Services.GetRequiredService<IRunnerService>().ShowUI();
@@ -482,7 +483,7 @@ namespace Lively
                 if (!Services.GetRequiredService<IRunnerService>().IsVisibleUI)
                 {
                     Services.GetRequiredService<ISystray>().ShowBalloonNotification(4000,
-                        "Lively Wallpaper",
+                        "Iceberg Wallpapers",
                         Lively.Properties.Resources.TextUpdateAvailable);
                 }
             }));

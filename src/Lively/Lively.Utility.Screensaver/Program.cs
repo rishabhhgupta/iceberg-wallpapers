@@ -1,4 +1,4 @@
-﻿using Lively.Utility.Screensaver.Com;
+using Lively.Utility.Screensaver.Com;
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
@@ -21,9 +21,9 @@ namespace Lively.Utility.Screensaver
             if (IsSystemLocked())
                 return;
 
-            var mutexName = "LIVELY:DESKTOPWALLPAPERSYSTEM";
+            var mutexName = "ICEBERG:DESKTOPWALLPAPERSYSTEM";
             var installerGuid = "{E3E43E1B-DEC8-44BF-84A6-243DBA3F2CB1}";
-            var packageFamilyName = "12030rocksdanister.LivelyWallpaper_97hta09mmv6hy";
+            var packageFamilyName = "Reeshabh.IcebergWallpapers_wjrssbz2vxzrp";
             var appUserModelId = $"{packageFamilyName}!App";
             var isRunning = IsAppMutexRunning(mutexName);
             var (option, hwnd) = ParseScreensaverArgs(args);

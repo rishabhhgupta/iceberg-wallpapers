@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Windows.Forms;
 
@@ -16,7 +16,7 @@ namespace Lively.Player.CefSharp
             {
                 //Deleting old CEF logfile if any.
                 File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Lively Wallpaper", "Cef", "logfile.txt"));
+                    "Iceberg Wallpaper", "Cef", "logfile.txt"));
             }
             catch { }
 

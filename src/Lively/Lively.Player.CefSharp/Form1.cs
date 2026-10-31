@@ -1,4 +1,4 @@
-﻿using CefSharp;
+using CefSharp;
 using CefSharp.SchemeHandler;
 using CefSharp.WinForms;
 using CommandLine;
@@ -349,7 +349,7 @@ namespace Lively.Player.CefSharp
                 CommandLineArgsDisabled = true,
                 // Required >120.1.80, otherwise crash when multiple instance.
                 // Ref: https://github.com/cefsharp/CefSharp/issues/4668
-                RootCachePath = Path.Combine(Path.GetTempPath(), "Lively Wallpaper", "CEF", Path.GetRandomFileName())
+                RootCachePath = Path.Combine(Path.GetTempPath(), "Iceberg Wallpaper", "CEF", Path.GetRandomFileName())
             };
             //ref: https://magpcss.org/ceforum/apidocs3/projects/(default)/_cef_browser_settings_t.html#universal_access_from_file_urls
             //settings.CefCommandLineArgs.Add("allow-universal-access-from-files", "1"); //UNSAFE, Testing Only!
@@ -360,7 +360,7 @@ namespace Lively.Player.CefSharp
             //disable smtc
             settings.CefCommandLineArgs.Add("disable-features", "HardwareMediaKeyHandling");
             settings.LogFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Lively Wallpaper", "Cef", "logfile.txt");
+                "Iceberg Wallpaper", "Cef", "logfile.txt");
 
             if (!string.IsNullOrWhiteSpace(startArgs.DebugPort) && int.TryParse(startArgs.DebugPort, out int value))
                 settings.RemoteDebuggingPort = value;

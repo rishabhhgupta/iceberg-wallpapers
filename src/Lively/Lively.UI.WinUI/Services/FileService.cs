@@ -1,4 +1,4 @@
-﻿using Lively.Common;
+using Lively.Common;
 using Lively.Common.Helpers;
 using Lively.Common.Helpers.Files;
 using Lively.Common.Services;
@@ -59,7 +59,7 @@ namespace Lively.UI.WinUI.Services
         public async Task<IReadOnlyList<string>> PickWallpaperFile(bool multipleFile = false)
         {
             var filters = GetWallpaperFilters(true);
-            filters.Add(("Lively Wallpaper", [".zip"]));
+            filters.Add(("Iceberg Wallpaper", [".zip"]));
 
             return await PickFileAsync(filters, multipleFile);
         }
