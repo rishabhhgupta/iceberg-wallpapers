@@ -26,8 +26,8 @@ param(
     [string]$Runtime = 'win-x64',
     [string]$Platform = 'x64',
 
-    # Path to dotnet.exe. Defaults to whatever is on PATH.
-    [string]$Dotnet = 'dotnet',
+    # Path to dotnet.exe. Defaults to user .dotnet if found, else PATH.
+    [string]$Dotnet = '',
 
     # Delete previous staging output before publishing.
     [switch]$Clean,
@@ -38,6 +38,15 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+if (-not $Dotnet) {
+    $userDotnet = Join-Path $env:USERPROFILE '.dotnet\dotnet.exe'
+    if (Test-Path $userDotnet) {
+        $Dotnet = $userDotnet
+    } else {
+        $Dotnet = 'dotnet'
+    }
+}
 
 function Write-Step([string]$Message) {
     Write-Host ''
