@@ -36,7 +36,7 @@ namespace Lively.Services
 
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private readonly List<Window> blankWindows = [];
-        private readonly List<WallpaperPreview> screensaverWindows = [];
+        private readonly List<Window> screensaverWindows = [];
         private DwmThumbnailWindow dwmThumbnailWindow;
         private bool startAsyncExecuting, stopAsyncExecuting;
         private DateTime? startTime;
@@ -190,112 +190,46 @@ namespace Lively.Services
             }
         }
 
-        private async Task ShowWindowAsScreensaver()
+        /// <summary>
+        /// The screensaver shows the pictures the person starred in Iceberg, on
+        /// every display. Nothing else: no desktop mirror, no custom layout.
+        /// </summary>
+        private Task ShowWindowAsScreensaver()
         {
-            WallpaperArrangement arrangement = WallpaperArrangement.per;
-            List<WallpaperLayoutModel> wallpaperLayout = null;
-            switch (userSettings.Settings.ScreensaverType)
-            {
-                case ScreensaverType.wallpaper:
-                    {
-                        wallpaperLayout = userSettings.WallpaperLayout;
-                        arrangement = userSettings.Settings.WallpaperArrangement;
-                    }
-                    break;
-                case ScreensaverType.different:
-                    {
-                        try
-                        {
-                            var screensavers = JsonStorage<List<ScreenSaverLayoutModel>>.LoadData(Constants.CommonPaths.ScreenSaverLayoutPath);
-                            arrangement = userSettings.Settings.ScreensaverArragement;
-                            wallpaperLayout = screensavers.Find(x => x.Layout == arrangement)?.Wallpapers;
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error($"Failed to read Screensaver config file. | {ex}");
-                        }
-                    }
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
+            System.IO.Directory.CreateDirectory(FavouriteScreensaverCache.DirectoryPath);
 
-            if (wallpaperLayout is null || wallpaperLayout.Count == 0)
+            // Copies are fetched in the background; each window re-reads the
+            // folder when it changes picture, so the first one appears as soon
+            // as it lands instead of holding up the screen cover.
+            _ = FavouriteScreensaverCache.SyncAsync();
+
+            var displays = displayManager.DisplayMonitors;
+            if (displays is null || displays.Count == 0)
             {
-                // Protect screen regardless wallpaper state.
                 ShowBlankWindowAsScreensaver(displayManager.VirtualScreenBounds);
-                return;
+                return Task.CompletedTask;
             }
 
-            switch (arrangement)
+            foreach (var display in displays)
             {
-                case WallpaperArrangement.per:
-                    {
-                        foreach (var layout in wallpaperLayout)
-                        {
-                            try
-                            {
-                                var model = wallpaperLibraryFactory.CreateFromDirectory(layout.LivelyInfoPath);
-                                var display = displayManager.DisplayMonitors.FirstOrDefault(x => x.Equals(layout.Display));
-                                var volume = display?.IsPrimary == true ? userSettings.Settings.ScreensaverGlobalVolume : 0;
-                                if (display is null)
-                                    Logger.Info($"Screen missing, skipping screensaver {layout.LivelyInfoPath} | {layout.Display.DeviceName}");
-                                else
-                                {
-                                    Logger.Info($"Starting screensaver {model.Title} | {model.LivelyInfoFolderPath} | {layout.Display.Bounds}");
-                                    await ShowPreviewWindowAsScreensaver(model, display, volume);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Info($"Failed to load Screensaver {layout.LivelyInfoPath} | {ex}");
-                                // Protect screen regardless wallpaper state.
-                                ShowBlankWindowAsScreensaver(layout.Display);
-                            }
-                        }
-                        // Show black screen to protect display if no wallpaper.
-                        foreach (var display in displayManager.DisplayMonitors.Where(x => !wallpaperLayout.Exists(y => y.Display.Equals(x))))
-                            ShowBlankWindowAsScreensaver(display);
-                    }
-                    break;
-                case WallpaperArrangement.span:
-                    {       
-                        try
-                        {
-                            var model = wallpaperLibraryFactory.CreateFromDirectory(wallpaperLayout.FirstOrDefault()?.LivelyInfoPath);
-                            await ShowPreviewWindowAsScreensaver(model, displayManager.VirtualScreenBounds, userSettings.Settings.ScreensaverGlobalVolume);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Info($"Failed to load Screensaver {wallpaperLayout.FirstOrDefault()?.LivelyInfoPath} | {ex}");
-                            // Protect screen regardless wallpaper state.
-                            ShowBlankWindowAsScreensaver(displayManager.VirtualScreenBounds);
-                        }
-                    }
-                    break;
-                case WallpaperArrangement.duplicate:
-                    {
-                        try
-                        {
-                            var model = wallpaperLibraryFactory.CreateFromDirectory(wallpaperLayout.FirstOrDefault()?.LivelyInfoPath);
-                            foreach (var display in displayManager.DisplayMonitors)
-                            {
-                                await ShowPreviewWindowAsScreensaver(model, display, display.IsPrimary ? userSettings.Settings.ScreensaverGlobalVolume : 0);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Info($"Failed to load Screensaver {wallpaperLayout.FirstOrDefault()?.LivelyInfoPath} | {ex}");
-                            // Protect screen regardless wallpaper state.
-                            ShowBlankWindowAsScreensaver(displayManager.VirtualScreenBounds);
-                        }
-                    }
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
-        }
+                var window = new FavouriteScreensaverWindow(FavouriteScreensaverCache.DirectoryPath)
+                {
+                    WindowStartupLocation = WindowStartupLocation.Manual,
+                    BorderThickness = new Thickness(0),
+                    WindowStyle = WindowStyle.None,
+                    ResizeMode = ResizeMode.NoResize,
+                    Topmost = true,
+                };
 
+                window.Show();
+                window.NativeMove(display.Bounds);
+                window.WindowState = WindowState.Maximized;
+
+                screensaverWindows.Add(window);
+            }
+
+            return Task.CompletedTask;
+        }
         private async Task ShowPreviewWindowAsScreensaver(LibraryModel model, DisplayMonitor display, int volume)
         {
             var window = new WallpaperPreview(

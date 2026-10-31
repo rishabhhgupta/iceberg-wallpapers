@@ -213,24 +213,24 @@ OLED, प्लाज्मा या CRT डिस्प्ले के लि
     <value>Developer के लिए कॉफी खरीदकर समर्थन दिखाएं।</value>
   </data>
   <data name="DescSwitchBranchBetaWarning" xml:space="preserve">
-    <value>आप Lively के Beta Build में बदलने वाले हैं।
+    <value>आप Iceberg के Beta Build में बदलने वाले हैं।
 अपडेट लगातार होंगे और इसमें गलतियाँ (Bugs) भी हो सकती हैं!</value>
   </data>
   <data name="HideSysTray.Description" xml:space="preserve">
-    <value>Syste-tray icon visibility (दृश्यता), Lively छिपाकर पिछे चलता रहेगा।</value>
+    <value>Syste-tray icon visibility (दृश्यता), Iceberg छिपाकर पिछे चलता रहेगा।</value>
   </data>
   <data name="HideSysTray.Header" xml:space="preserve">
     <value>सिस्टम ट्रे आइकन</value>
   </data>
   <data name="Language.Description" xml:space="preserve">
-    <value>नई भाषा को लागू करने के लिए Lively पुनः आरंभ करेगा</value>
+    <value>नई भाषा को लागू करने के लिए Iceberg पुनः आरंभ करेगा</value>
   </data>
   <data name="Language.Header" xml:space="preserve">
     <value>भाषा</value>
   </data>
   <data name="LivelyExceptionAppUpdateFail" xml:space="preserve">
     <value>अपडेट नहीं हो सका; कृपया इस इंस्टॉलर को यहाँ से डाउनलोड करने का प्रयास करें:
-https://github.com/rocksdanister/lively/releases</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers/releases</value>
   </data>
   <data name="LivelyExceptionDamagedZipFile" xml:space="preserve">
     <value>यह एक ख़राब wallpaper फ़ाइल है इसे फिर से डाउनलोड करने का प्रयास करें।</value>
@@ -239,7 +239,7 @@ https://github.com/rocksdanister/lively/releases</value>
     <value>उफ़ ... लगता है कुछ गड़बड़ हो गई :(
 इस त्रुटि को बेहतर ढंग से समझने और समस्या को ठीक करने के लिए, डेवलपर के साथ लॉग फ़ाइल साझा करें।
 लॉग फाइल साझा करने के निर्देश:
-https://github.com/rocksdanister/lively/wiki</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionHighContrastMode" xml:space="preserve">
     <value>जीवंत उच्च विपरीत मोड में अच्छा प्रदर्शन नहीं करता है।
@@ -251,10 +251,10 @@ https://github.com/rocksdanister/lively/wiki</value>
 
 इस त्रुटि को बेहतर ढंग से समझने और समस्या को ठीक करने के लिए, डेवलपर के साथ लॉग फ़ाइल साझा करें।
 लॉग फ़ाइल साझा करने के निर्देश:
-https://github.com/rocksdanister/lively/wiki</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionNotLivelyZip" xml:space="preserve">
-    <value>यह एक Lively wallpaper फ़ाइल नहीं है</value>
+    <value>यह एक Iceberg wallpaper फ़ाइल नहीं है</value>
   </data>
   <data name="LivelyExceptionSafeModeStart" xml:space="preserve">
     <value>सुरक्षित मोड में शुरू होने से लाइवली ठीक से बंद नहीं हुआ।

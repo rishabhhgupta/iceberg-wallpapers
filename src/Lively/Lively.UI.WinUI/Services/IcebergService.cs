@@ -329,10 +329,15 @@ namespace Lively.UI.WinUI.Services
             _ => WallpaperOrientation.Landscape,
         };
 
-        /// <summary>Picks the next wallpaper from the enabled sources.</summary>
+        /// <summary>Picks the next wallpaper from the chosen rotation source.</summary>
         public async Task<WallpaperItem> ApplyNextAsync(CancellationToken cancellationToken = default)
         {
             var settings = Settings.Current;
+
+            if (settings.RotationSource == "favourites")
+            {
+                return await ApplyFavouriteAsync(settings, cancellationToken).ConfigureAwait(false);
+            }
 
             // The phase of the day decides which words are searched for, so a
             // daytime wallpaper is bright and a night one is dark.
@@ -340,19 +345,10 @@ namespace Lively.UI.WinUI.Services
                 ? PhaseHint(a)
                 : null;
 
-            var media = ParseMedia(settings.MediaType);
-
-            // Videos are only allowed into the rotation when the person asked.
-            // Without the switch, a video filter still applies to browsing but
-            // never to an automatic change.
-            if (media is WallpaperMediaType.Video or WallpaperMediaType.Gif && !settings.AllowVideoInRotation)
-            {
-                media = null;
-            }
-
-            // Occasionally ask for a video when videos are allowed, otherwise the
-            // rotation would never actually pick one.
-            if (media is null && settings.AllowVideoInRotation && Random.Shared.NextDouble() < 0.2)
+            // Filters only change what Home shows. The rotation has its own
+            // source, so the browsing filters are deliberately not used here.
+            WallpaperMediaType? media = null;
+            if (settings.AllowVideoInRotation && Random.Shared.NextDouble() < 0.2)
             {
                 media = WallpaperMediaType.Video;
             }
@@ -363,24 +359,41 @@ namespace Lively.UI.WinUI.Services
                 PerPage = 24,
                 Text = hint,
                 SafeSearch = true,
-                Sort = ParseSort(settings.Sort),
+                Sort = WallpaperSort.Random,
                 Orientation = ParseOrientation(settings.Orientation),
                 MediaType = media,
-                SourceFilters = RotationFilters(settings),
             };
 
-            var page = await Feed.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+            IWallpaperSource? onlySource = null;
+
+            if (settings.RotationSource == "predefined")
+            {
+                onlySource = Registry.Get(settings.RotationSourceId ?? string.Empty)
+                    ?? throw new InvalidOperationException("Choose a site for the rotation first.");
+
+                query = query with
+                {
+                    SourceFilters = BuildRotationFilter(onlySource, settings.RotationCollection),
+                    MediaType = media is WallpaperMediaType.Video
+                               && !onlySource.MediaTypes.Contains(WallpaperMediaType.Video)
+                        ? null
+                        : media,
+                };
+            }
+
+            var page = await FetchForRotationAsync(query, onlySource, cancellationToken).ConfigureAwait(false);
 
             // Fall back to a plain page when a themed search returns nothing.
             if (page.Items.Count == 0 && hint is not null)
             {
-                page = await Feed.GetPageAsync(query with { Text = null, Page = 1 }, cancellationToken).ConfigureAwait(false);
+                page = await FetchForRotationAsync(query with { Text = null, Page = 1 }, onlySource, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             if (page.Items.Count == 0)
             {
-                var reason = page.Failures.FirstOrDefault()?.Message;
-                throw new InvalidOperationException(reason ?? "No wallpapers came back. Check your connection.");
+                throw new InvalidOperationException(
+                    page.Failure ?? "No wallpapers came back. Check your connection.");
             }
 
             var candidates = page.Items.Select(i => new WallpaperCandidate(i.Key, i.SourceId)).ToList();
@@ -405,26 +418,6 @@ namespace Lively.UI.WinUI.Services
                 try
                 {
                     await ApplyAsync(item, cancellationToken).ConfigureAwait(false);
-
-                    // A lock screen change must never make the desktop change
-                    // look like it failed. Policies and older Windows builds are
-                    // allowed to say no; the wallpaper is already on screen.
-                    if (Settings.Current.RotateLockScreenToo)
-                    {
-                        try
-                        {
-                            await SetLockScreenAsync(item, cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            throw;
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Warn($"Rotation could not change the lock screen: {ex.Message}");
-                        }
-                    }
-
                     return item;
                 }
                 catch (OperationCanceledException)
@@ -439,6 +432,116 @@ namespace Lively.UI.WinUI.Services
 
             throw lastError ?? new InvalidOperationException("No wallpapers came back. Check your connection.");
         }
+
+        /// <summary>
+        /// Rotation from the starred list. Nothing is downloaded from a website:
+        /// the favourites already carry their full image address.
+        /// </summary>
+        private async Task<WallpaperItem> ApplyFavouriteAsync(
+            IcebergSettings settings,
+            CancellationToken cancellationToken)
+        {
+            var favourites = Favourites.Items
+                .Where(f => !string.IsNullOrWhiteSpace(f.FullUrl))
+                .ToList();
+
+            if (favourites.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "No favourites yet. Star a few wallpapers on Home and the rotation will use them.");
+            }
+
+            Exception? lastError = null;
+
+            foreach (var favourite in favourites.OrderBy(_ => Random.Shared.Next()).Take(5))
+            {
+                var item = new WallpaperItem
+                {
+                    Id = favourite.Id,
+                    SourceId = favourite.SourceId,
+                    FullUrl = favourite.FullUrl!,
+                    ThumbnailUrl = favourite.ThumbnailUrl,
+                    Title = favourite.Title,
+                    Category = favourite.Category,
+                    PageUrl = favourite.PageUrl,
+                };
+
+                try
+                {
+                    await ApplyAsync(item, cancellationToken).ConfigureAwait(false);
+                    return item;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                }
+            }
+
+            throw lastError ?? new InvalidOperationException("None of your favourites could be used.");
+        }
+
+        private async Task<RotationPage> FetchForRotationAsync(
+            WallpaperQuery query,
+            IWallpaperSource? onlySource,
+            CancellationToken cancellationToken)
+        {
+            if (onlySource is null)
+            {
+                var page = await Feed.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+                return new RotationPage(page.Items, page.Failures.FirstOrDefault()?.Message);
+            }
+
+            try
+            {
+                var page = await onlySource.SearchAsync(query, cancellationToken).ConfigureAwait(false);
+                return new RotationPage(page.Items, null);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (SourceException ex)
+            {
+                return new RotationPage(Array.Empty<WallpaperItem>(), ex.Message);
+            }
+            catch (OperationCanceledException)
+            {
+                return new RotationPage(Array.Empty<WallpaperItem>(), "The source took too long.");
+            }
+            catch (Exception ex)
+            {
+                return new RotationPage(Array.Empty<WallpaperItem>(), ex.Message);
+            }
+        }
+
+        /// <summary>Only the chosen collection, and only for the chosen site.</summary>
+        private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> BuildRotationFilter(
+            IWallpaperSource source,
+            string? collection)
+        {
+            var result = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+
+            if (string.IsNullOrWhiteSpace(collection)) return result;
+
+            var group = source.Filters.FirstOrDefault(f => f.Id.Equals("category", StringComparison.OrdinalIgnoreCase))
+                ?? source.Filters.FirstOrDefault(f =>
+                    f.Options.Any(o => o.Id.Equals(collection, StringComparison.OrdinalIgnoreCase)));
+
+            if (group is null) return result;
+
+            result[source.Id] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                [group.Id] = collection,
+            };
+
+            return result;
+        }
+
+        private sealed record RotationPage(IReadOnlyList<WallpaperItem> Items, string? Failure);
 
         public void StartRotation()
         {
@@ -519,15 +622,15 @@ namespace Lively.UI.WinUI.Services
         }
 
         /// <summary>
-        /// One trigger, two shapes. "Time of day" changes at 07:00 and 19:00
-        /// local time and catches up after the PC was off; "timer" counts from
-        /// the last change, or lands on midnight.
+        /// One trigger, two shapes. "Time of day" changes at the day and night
+        /// times the person picked and catches up after the PC was off; "timer"
+        /// counts from the last change, or lands on midnight.
         /// </summary>
         private static bool IsRotationDue(IcebergSettings settings, DateTimeOffset last, DateTimeOffset now)
         {
             if (settings.RotationMode == "timeofday")
             {
-                return last < LastDayNightBoundary(now);
+                return last < LastDayNightBoundary(settings, now);
             }
 
             return settings.TimerMode switch
@@ -538,16 +641,21 @@ namespace Lively.UI.WinUI.Services
             };
         }
 
-        private static DateTimeOffset LastDayNightBoundary(DateTimeOffset now)
+        private static DateTimeOffset LastDayNightBoundary(IcebergSettings settings, DateTimeOffset now)
         {
             var today = new DateTimeOffset(now.Date, now.Offset);
-            var evening = today.AddHours(19);
-            var morning = today.AddHours(7);
 
-            if (now >= evening) return evening;
-            if (now >= morning) return morning;
+            var first = today + settings.DayChange;
+            var second = today + settings.NightChange;
 
-            return evening.AddDays(-1);
+            // The two times can be typed in any order; sort them so "last
+            // boundary" always means the later one of the two.
+            if (second < first) (first, second) = (second, first);
+
+            if (now >= second) return second;
+            if (now >= first) return first;
+
+            return second.AddDays(-1);
         }
 
         private static WallpaperMediaType? ParseMedia(string? value) => value?.Trim().ToLowerInvariant() switch

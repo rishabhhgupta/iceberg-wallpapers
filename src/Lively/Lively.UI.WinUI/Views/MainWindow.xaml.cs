@@ -7,6 +7,7 @@ using Lively.UI.Shared.ViewModels;
 using Lively.UI.WinUI.Extensions;
 using Lively.UI.WinUI.Services;
 using Lively.UI.WinUI.Views.Pages;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -108,8 +109,18 @@ namespace Lively.UI.WinUI
             SetWindowSubclass(this.GetWindowHandleEx(), closeGuard, (UIntPtr)1, IntPtr.Zero);
         }
 
-        private void MainWindow_FirstActivated(object sender, WindowActivatedEventArgs args) =>
-            FitToScreen();
+        private void MainWindow_FirstActivated(object sender, WindowActivatedEventArgs args)
+        {
+            this.Activated -= MainWindow_FirstActivated;
+            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                presenter.Maximize();
+            }
+            else
+            {
+                FitToScreen();
+            }
+        }
 
         private void FitToScreen()
         {
@@ -279,6 +290,10 @@ namespace Lively.UI.WinUI
                                 else if (args[1].Equals("SHOWAPPUPDATEPAGE", StringComparison.OrdinalIgnoreCase))
                                 {
                                     navigator.NavigateTo(ContentPageType.appupdate);
+                                }
+                                else if (args[1].Equals("ROTATENOW", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    _ = App.Services.GetRequiredService<IcebergService>().ApplyNextAsync();
                                 }
                             }
                         });

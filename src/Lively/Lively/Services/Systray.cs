@@ -1,4 +1,4 @@
-﻿using Lively.Common;
+using Lively.Common;
 using Lively.Common.Factories;
 using Lively.Common.Helpers;
 using Lively.Common.Services;
@@ -69,7 +69,7 @@ namespace Lively.Services
             notifyIcon.DoubleClick += (s, args) => runner.ShowUI();
             notifyIcon.ContextMenuStrip = new ContextMenuStrip();
             notifyIcon.Icon = appIcon;
-            notifyIcon.Text = "Lively Wallpaper";
+            notifyIcon.Text = "Iceberg Wallpapers";
             notifyIcon.Visible = userSettings.Settings.SysTrayIcon;
             var toolStripColor = Color.FromArgb(55, 55, 55);
             notifyIcon.ContextMenuStrip = new ContextMenuStrip
@@ -87,11 +87,7 @@ namespace Lively.Services
             notifyIcon.ContextMenuStrip.Items.Add(openAppTrayMenu);
             trayMenuItems[TrayMenuItem.openApp] = openAppTrayMenu;
 
-            var closeWallpaperTrayMenu = new ToolStripMenuItem(GetMenuItemString(TrayMenuItem.closeWallpaper), null);
-            closeWallpaperTrayMenu.Click += (s, e) => desktopCore.CloseAllWallpapers();
             notifyIcon.ContextMenuStrip.Items.Add(CreateToolStripSeparator(toolStripColor));
-            notifyIcon.ContextMenuStrip.Items.Add(closeWallpaperTrayMenu);
-            trayMenuItems[TrayMenuItem.closeWallpaper] = closeWallpaperTrayMenu;
 
             var pauseTrayMenu = new ToolStripMenuItem(GetMenuItemString(TrayMenuItem.pauseWallpaper), null);
             pauseTrayMenu.Click += (s, e) =>
@@ -102,43 +98,40 @@ namespace Lively.Services
             trayMenuItems[TrayMenuItem.pauseWallpaper] = pauseTrayMenu;
 
             var changeWallpaperTrayMenu = new ToolStripMenuItem(GetMenuItemString(TrayMenuItem.changeWallpaper), null);
-            changeWallpaperTrayMenu.Click += async (s, e) => await SetRandomWallpapers();
+            changeWallpaperTrayMenu.Click += async (s, e) =>
+            {
+                try
+                {
+                    runner.RotateWallpaperNow();
+                }
+                catch
+                {
+                    await SetRandomWallpapers();
+                }
+            };
             notifyIcon.ContextMenuStrip.Items.Add(changeWallpaperTrayMenu);
             trayMenuItems[TrayMenuItem.changeWallpaper] = changeWallpaperTrayMenu;
 
-            var customiseWallpaperMenu = new ToolStripMenuItem(GetMenuItemString(TrayMenuItem.customiseWallpaper), null)
-            {
-                // Systray is initialized first before restoring wallpaper
-                Enabled = false,
-            };
-            customiseWallpaperMenu.Click += CustomiseWallpaper;
-            notifyIcon.ContextMenuStrip.Items.Add(customiseWallpaperMenu);
-            trayMenuItems[TrayMenuItem.customiseWallpaper] = customiseWallpaperMenu;
+            notifyIcon.ContextMenuStrip.Items.Add(CreateToolStripSeparator(toolStripColor));
 
-            // Update check, only create on installer build.
-            if (!PackageUtil.IsRunningAsPackaged)
-            {
-                var updateTrayMenu = new ToolStripMenuItem(GetMenuItemString(TrayMenuItem.updateApp), null)
-                {
-                    Enabled = false
-                };
-                updateTrayMenu.Click += (s, e) => runner.ShowAppUpdatePage();
-                notifyIcon.ContextMenuStrip.Items.Add(CreateToolStripSeparator(toolStripColor));
-                notifyIcon.ContextMenuStrip.Items.Add(updateTrayMenu);
-                trayMenuItems[TrayMenuItem.updateApp] = updateTrayMenu;
-            }
+            var updateTrayMenu = new ToolStripMenuItem(GetMenuItemString(TrayMenuItem.updateApp), null);
+            updateTrayMenu.Click += (s, e) => LinkUtil.OpenBrowser("ms-windows-store://pdp/?productid=9P8TKTPF87V4");
+            notifyIcon.ContextMenuStrip.Items.Add(updateTrayMenu);
+            trayMenuItems[TrayMenuItem.updateApp] = updateTrayMenu;
 
             var reportBugTrayMenu = new ToolStripMenuItem(GetMenuItemString(TrayMenuItem.reportBug), Properties.Icons.icons8_website_bug_96);
-            reportBugTrayMenu.Click += (s, e) => windowService.ShowDiagnosticWindow();
-            notifyIcon.ContextMenuStrip.Items.Add(CreateToolStripSeparator(toolStripColor));
+            reportBugTrayMenu.Click += (s, e) => LinkUtil.OpenBrowser("https://github.com/rishabhhgupta/iceberg-wallpapers/issues");
             notifyIcon.ContextMenuStrip.Items.Add(reportBugTrayMenu);
             trayMenuItems[TrayMenuItem.reportBug] = reportBugTrayMenu;
 
+            notifyIcon.ContextMenuStrip.Items.Add(CreateToolStripSeparator(toolStripColor));
+
             var exitAppTrayMenu = new ToolStripMenuItem(GetMenuItemString(TrayMenuItem.exitApp), Properties.Icons.icons8_close_96);
             exitAppTrayMenu.Click += (s, e) => App.QuitApp();
-            notifyIcon.ContextMenuStrip.Items.Add(CreateToolStripSeparator(toolStripColor));
             notifyIcon.ContextMenuStrip.Items.Add(exitAppTrayMenu);
             trayMenuItems[TrayMenuItem.exitApp] = exitAppTrayMenu;
+
+            UpdatePauseMenuState();
 
             playbackMonitor.PlaybackPolicyChanged += Playback_PlaybackStateChanged;
             desktopCore.WallpaperChanged += DesktopCore_WallpaperChanged;
@@ -189,6 +182,7 @@ namespace Lively.Services
         /// <param name="e"></param>
         private void ContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            UpdatePauseMenuState();
             ContextMenuStrip menuStrip = sender as ContextMenuStrip;
             if (displayManager.IsMultiScreen())
             {
@@ -243,16 +237,17 @@ namespace Lively.Services
         {
             _ = System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background, new ThreadStart(delegate
             {
-                trayMenuItems[TrayMenuItem.customiseWallpaper].Enabled = desktopCore.Wallpapers.Any(x => x.LivelyPropertyCopyPath != null);
+                UpdatePauseMenuState();
             }));
         }
 
-        private void CustomiseWallpaper(object sender, EventArgs e)
+        private void UpdatePauseMenuState()
         {
-            var items = desktopCore.Wallpapers.Where(x => x.LivelyPropertyCopyPath != null);
-            if (items.Any())
+            if (trayMenuItems.TryGetValue(TrayMenuItem.pauseWallpaper, out var pauseMenu))
             {
-                runner.ShowCustomisWallpaperePanel();
+                bool hasAnimated = desktopCore.Wallpapers.Any(x => x.Category != WallpaperType.picture);
+                pauseMenu.Visible = hasAnimated;
+                pauseMenu.Enabled = hasAnimated;
             }
         }
 
@@ -395,14 +390,12 @@ namespace Lively.Services
             return item switch
             {
                 TrayMenuItem.openApp => i18n.GetString("TextOpenLively"),
-                TrayMenuItem.closeWallpaper => i18n.GetString("TextCloseWallpapers"),
                 TrayMenuItem.changeWallpaper => i18n.GetString("TextChangeWallpaper"),
                 TrayMenuItem.reportBug => i18n.GetString("ReportBug/Header"),
                 TrayMenuItem.exitApp => i18n.GetString("TextExit"),
                 TrayMenuItem.pauseWallpaper => i18n.GetString("TextPauseWallpapers"),
-                TrayMenuItem.customiseWallpaper => i18n.GetString("TextCustomiseWallpaper"),
-                TrayMenuItem.updateApp => i18n.GetString("TextUpdateChecking"),
-                _ => throw new NotImplementedException(),
+                TrayMenuItem.updateApp => "Check for updates",
+                _ => string.Empty,
             };
         }
 
@@ -410,12 +403,10 @@ namespace Lively.Services
         private enum TrayMenuItem
         {
             openApp,
-            closeWallpaper,
             changeWallpaper,
             reportBug,
             exitApp,
             pauseWallpaper,
-            customiseWallpaper,
             updateApp
         }
 

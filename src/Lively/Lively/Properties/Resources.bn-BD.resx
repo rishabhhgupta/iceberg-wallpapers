@@ -144,14 +144,14 @@
     <value>বেমানান প্রোগ্রাম পাওয়া গেছে, টাস্কবার থিমিং অক্ষম করা হয়েছে</value>
   </data>
   <data name="Website.Description" xml:space="preserve">
-    <value>Lively Wallpaper এর অফিসিয়াল ওয়েবপেজ</value>
+    <value>Iceberg Wallpaper এর অফিসিয়াল ওয়েবপেজ</value>
   </data>
   <data name="DescOledScreensaverNotice" xml:space="preserve">
     <value>বেশিরভাগ আধুনিক LCD এবং LED ডিসপ্লে burn-in সমস্যায় ভোগে না, তাই যে কোনও ওয়ালপেপা স্ক্রিনসেভার হিসাবে ব্যবহার করা যেতে পারে।
 
 OLED, Plasma বা CRT ডিসপ্লেগুলির জন্য যা burn-in সংবেদনশীল, এটিকে নিয়মিত গতির ওয়ালপেপার এবং একটি সামগ্রিক অন্ধকার থিম ব্যবহার করার পরামর্শ দেওয়া হয় যা burn-in হ্রাস করতে অনুমিত হয় তবে এই বৈশিষ্ট্যটি পরীক্ষিত নয় এবং এর কার্যকারিতা নিশ্চিত করা যায় না।
 
-Lively এর স্ক্রিনসেভারগুলির মূল উদ্দেশ্য হল আপনার পিসিতে কাস্টমাইজেশনের আরেকটি স্তর যুক্ত করা, আপনার নিজের ঝুঁকিতে burn-in সুরক্ষা হিসাবে স্ক্রিনসেভারগুলি ব্যবহার করা!</value>
+Iceberg এর স্ক্রিনসেভারগুলির মূল উদ্দেশ্য হল আপনার পিসিতে কাস্টমাইজেশনের আরেকটি স্তর যুক্ত করা, আপনার নিজের ঝুঁকিতে burn-in সুরক্ষা হিসাবে স্ক্রিনসেভারগুলি ব্যবহার করা!</value>
   </data>
   <data name="ReportBug.Description" xml:space="preserve">
     <value>সফ্টওয়্যারটির প্রসঙ্গে একটি সমস্যা রিপোর্ট করুন</value>
@@ -226,7 +226,7 @@ Lively এর স্ক্রিনসেভারগুলির মূল উ�
     <value>ভাষা</value>
   </data>
   <data name="LivelyExceptionAppUpdateFail" xml:space="preserve">
-    <value>আপডেট করতে ব্যর্থ; ইনস্টলার ডাউনলোড করার চেষ্টা করুন: https://github.com/rocksdanister/lively/releases</value>
+    <value>আপডেট করতে ব্যর্থ; ইনস্টলার ডাউনলোড করার চেষ্টা করুন: https://github.com/rishabhhgupta/iceberg-wallpapers/releases</value>
   </data>
   <data name="LivelyExceptionDamagedZipFile" xml:space="preserve">
     <value>ওয়ালপেপার ফাইলটি ক্ষতিগ্রস্ত, অনুগ্রহ করে আবার ডাউনলোড করার চেষ্টা করুন</value>
@@ -234,7 +234,7 @@ Lively এর স্ক্রিনসেভারগুলির মূল উ�
   <data name="LivelyExceptionGeneral" xml:space="preserve">
     <value>ওহো... মনে হচ্ছে কিছু ভুল হয়েছে :(
 এই ত্রুটিটি আরও ভালভাবে বুঝতে এবং সমস্যাটি সমাধান করার জন্য, নির্মাতাকে লগ ফাইলটি প্রদান করুন ৷
-লগ ফাইল শেয়ার করার জন্য নির্দেশাবলী: https://github.com/rocksdanister/lively/wiki</value>
+লগ ফাইল শেয়ার করার জন্য নির্দেশাবলী: https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionHighContrastMode" xml:space="preserve">
     <value>লাইভলি উইন্ডোজ হাই কনট্রাস্ট মোড চলমান অবস্থায় সঠিকভাবে কাজ করতে পারে না!
@@ -242,11 +242,11 @@ Lively এর স্ক্রিনসেভারগুলির মূল উ�
   </data>
   <data name="LivelyExceptionMediaPlayback" xml:space="preserve">
     <value>Media playback failed :(
-Try changing the videoplayer in lively settings.
+Try changing the videoplayer in iceberg settings.
 
 In order to better understand this error and fix the issue, share the log file with the developer.
 Instructions for sharing log file:
-https://github.com/rocksdanister/lively/wiki</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionNotLivelyZip" xml:space="preserve">
     <value>লাইভলি ওয়ালপেপার ফাইল নয়।</value>
@@ -263,7 +263,7 @@ https://github.com/rocksdanister/lively/wiki</value>
 4. "Apply" ক্লিক করুন তারপর উইন্ডোটি বন্ধ করতে "OK" টিপুন।
 
 যদি Windows 7 হয় - Adjust for best appearance প্রয়োগ করুন; এবং "Apply" করুন।
-তারপরও কাজ না করলে, বন্ধ করে আবার Lively চালু  করুন/ উইন্ডোজ পুনরায় চালু করুন।
+তারপরও কাজ না করলে, বন্ধ করে আবার Iceberg চালু  করুন/ উইন্ডোজ পুনরায় চালু করুন।
 (কিছু insider Windows 10 বিল্ডে কাজ করে না)</value>
   </data>
   <data name="Startup.Description" xml:space="preserve">
@@ -420,7 +420,7 @@ https://github.com/rocksdanister/lively/wiki</value>
     <value>অনলাইন</value>
   </data>
   <data name="TextOpenLively" xml:space="preserve">
-    <value>Lively খুলুন</value>
+    <value>Iceberg খুলুন</value>
   </data>
   <data name="PauseAlgorithmTypeAllProcess.Content" xml:space="preserve">
     <value>সমস্ত প্রক্রিয়া</value>
@@ -609,7 +609,7 @@ https://github.com/rocksdanister/lively/wiki</value>
     <value>ওয়ালপেপার থামান এইসব এপ্লিকেশন চলাকালীন</value>
   </data>
   <data name="TipAppTheme" xml:space="preserve">
-    <value>Lively adapts to system theme settings, to change appearance goto</value>
+    <value>Iceberg adapts to system theme settings, to change appearance goto</value>
   </data>
   <data name="BatteryPower.Description" xml:space="preserve">
     <value>প্লেব্যাক ধরণ পাল্টান যখন AC বিদ্যুৎ সংযোগ বিচ্ছিন্ন হয়</value>

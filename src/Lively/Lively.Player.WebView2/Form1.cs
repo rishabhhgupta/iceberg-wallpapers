@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using Lively.Common;
 using Lively.Common.Extensions;
 using Lively.Common.Helpers;
@@ -199,6 +199,7 @@ namespace Lively.Player.WebView2
             webView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
             webView.CoreWebView2.DownloadStarting += CoreWebView2_DownloadStarting;
             webView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
+            webView.CoreWebView2.PermissionRequested += CoreWebView2_PermissionRequested;
 
             switch (startArgs.Type)
             {
@@ -290,6 +291,15 @@ namespace Lively.Player.WebView2
         {
             // Cancel user requested downloads.
             e.Cancel = true;
+        }
+
+        private void CoreWebView2_PermissionRequested(object sender, CoreWebView2PermissionRequestedEventArgs e)
+        {
+            if (e.PermissionKind == CoreWebView2PermissionKind.Geolocation)
+            {
+                e.State = CoreWebView2PermissionState.Allow;
+                e.Handled = true;
+            }
         }
 
         private async void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)

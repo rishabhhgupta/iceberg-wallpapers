@@ -153,9 +153,15 @@ namespace Lively.UI.WinUI.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(FavouriteGlyph))]
+        [NotifyPropertyChangedFor(nameof(FavouriteBrush))]
         private bool isFavourite;
 
+        internal static readonly SolidColorBrush GoldBrush = new(Windows.UI.Color.FromArgb(255, 255, 200, 59));
+        internal static readonly SolidColorBrush WhiteBrush = new(Microsoft.UI.Colors.White);
+
         public string FavouriteGlyph => IsFavourite ? "\uE735" : "\uE734";
+
+        public Brush FavouriteBrush => IsFavourite ? GoldBrush : WhiteBrush;
 
         [ObservableProperty]
         private bool isApplying;
@@ -301,6 +307,15 @@ namespace Lively.UI.WinUI.ViewModels
         [ObservableProperty]
         private string? previewError;
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PreviewIsImage))]
+        private bool previewIsVideo;
+
+        public bool PreviewIsImage => !PreviewIsVideo;
+
+        [ObservableProperty]
+        private MediaSource? previewVideoSource;
+
         public bool HasPreviewError => !string.IsNullOrWhiteSpace(PreviewError);
 
         public bool HasPreviewNotice => !string.IsNullOrWhiteSpace(PreviewNotice);
@@ -309,10 +324,15 @@ namespace Lively.UI.WinUI.ViewModels
 
         public string PreviewFavouriteGlyph => PreviewTile?.IsFavourite == true ? "\uE735" : "\uE734";
 
+        public Brush PreviewFavouriteBrush => PreviewTile?.IsFavourite == true ? HomeTile.GoldBrush : HomeTile.WhiteBrush;
+
         partial void OnIsPreviewApplyingChanged(bool value) => OnPropertyChanged(nameof(CanPreviewApply));
 
-        partial void OnPreviewTileChanged(HomeTile? value) =>
+        partial void OnPreviewTileChanged(HomeTile? value)
+        {
             OnPropertyChanged(nameof(PreviewFavouriteGlyph));
+            OnPropertyChanged(nameof(PreviewFavouriteBrush));
+        }
 
         partial void OnPreviewErrorChanged(string? value) =>
             OnPropertyChanged(nameof(HasPreviewError));
@@ -343,6 +363,7 @@ namespace Lively.UI.WinUI.ViewModels
                 await service.InitializeAsync();
 
                 service.AtmosphereChanged += Service_AtmosphereChanged;
+                service.Favourites.Changed += Favourites_Changed;
 
                 ApplyAtmosphere(service.Atmosphere.Current);
 
@@ -475,6 +496,40 @@ namespace Lively.UI.WinUI.ViewModels
                 // Some stripped-down Windows builds do not raise this event.
                 // The "Try again" button still covers those machines.
             }
+
+            try
+            {
+                Windows.Networking.Connectivity.NetworkInformation.NetworkStatusChanged += NetworkInformation_NetworkStatusChanged;
+            }
+            catch
+            {
+            }
+        }
+
+        private void NetworkInformation_NetworkStatusChanged(object sender)
+        {
+            try
+            {
+                var profile = Windows.Networking.Connectivity.NetworkInformation.GetInternetConnectionProfile();
+                if (profile != null && profile.GetNetworkConnectivityLevel() == Windows.Networking.Connectivity.NetworkConnectivityLevel.InternetAccess)
+                {
+                    _ = dispatcher.TryEnqueue(async () =>
+                    {
+                        if (DateTimeOffset.UtcNow - lastNetworkRetry < TimeSpan.FromSeconds(3)) return;
+                        lastNetworkRetry = DateTimeOffset.UtcNow;
+
+                        service.Feed.ClearCooldowns();
+
+                        if (Tiles.Count == 0 || lastLoadHadFailures || HasError)
+                        {
+                            await RefreshAsync();
+                        }
+                    });
+                }
+            }
+            catch
+            {
+            }
         }
 
         private void Network_AvailabilityChanged(object? sender, NetworkAvailabilityEventArgs e)
@@ -500,6 +555,28 @@ namespace Lively.UI.WinUI.ViewModels
         private void Service_AtmosphereChanged(object sender, AtmosphereSnapshot e)
         {
             _ = dispatcher.TryEnqueue(() => ApplyAtmosphere(e));
+        }
+
+        private void Favourites_Changed(object? sender, string id)
+        {
+            _ = dispatcher.TryEnqueue(() =>
+            {
+                var isFav = service.Favourites.Contains(id);
+                foreach (var tile in Tiles)
+                {
+                    if (string.Equals(tile.Item.Key, id, StringComparison.OrdinalIgnoreCase))
+                    {
+                        tile.IsFavourite = isFav;
+                    }
+                }
+
+                if (PreviewTile != null && string.Equals(PreviewTile.Item.Key, id, StringComparison.OrdinalIgnoreCase))
+                {
+                    PreviewTile.IsFavourite = isFav;
+                    OnPropertyChanged(nameof(PreviewFavouriteGlyph));
+                    OnPropertyChanged(nameof(PreviewFavouriteBrush));
+                }
+            });
         }
 
         private void ApplyAtmosphere(AtmosphereSnapshot snapshot)
@@ -575,6 +652,9 @@ namespace Lively.UI.WinUI.ViewModels
             ErrorMessage = null;
             HasMore = true;
             NextPage = 1;
+
+            // Clear failure cooldowns so Try Again or manual refresh tries every enabled source immediately.
+            service.Feed.ClearCooldowns();
 
             try
             {
@@ -849,6 +929,32 @@ namespace Lively.UI.WinUI.ViewModels
             PreviewError = null;
             PreviewNotice = null;
             IsPreviewOpen = true;
+
+            PreviewIsVideo = tile.IsVideo;
+            if (tile.IsVideo)
+            {
+                IsPreviewLoading = false;
+                var videoUrl = !string.IsNullOrWhiteSpace(tile.Item.PreviewVideoUrl) ? tile.Item.PreviewVideoUrl : tile.Item.FullUrl;
+                try
+                {
+                    if (Uri.TryCreate(videoUrl, UriKind.Absolute, out var uri))
+                    {
+                        PreviewVideoSource = MediaSource.CreateFromUri(uri);
+                    }
+                    else
+                    {
+                        PreviewVideoSource = null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    PreviewVideoSource = null;
+                    PreviewError = ex.Message;
+                }
+                return;
+            }
+
+            PreviewVideoSource = null;
             IsPreviewLoading = true;
 
             try
@@ -913,6 +1019,9 @@ namespace Lively.UI.WinUI.ViewModels
             PreviewNotice = null;
             PreviewError = null;
             PreviewPageUrl = string.Empty;
+            PreviewIsVideo = false;
+            PreviewVideoSource?.Dispose();
+            PreviewVideoSource = null;
         }
 
         /// <summary>
@@ -992,6 +1101,7 @@ namespace Lively.UI.WinUI.ViewModels
 
             await ToggleFavouriteAsync(tile);
             OnPropertyChanged(nameof(PreviewFavouriteGlyph));
+            OnPropertyChanged(nameof(PreviewFavouriteBrush));
         }
 
         private string BuildPreviewSubtitle(WallpaperItem item)

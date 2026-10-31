@@ -23,6 +23,21 @@ interface on top. Thank you to Rocksdanister and every Lively contributor.
   the window leaves rotation running. The tray icon brings it back.
 - **Light, dark, or follow Windows.** The app never tints itself from the
   wallpaper.
+- **Interactive living wallpapers.** Supports interactive wallpapers like Nagomi Living Koi Pond, procedurally animated and driven by local time and live weather.
+
+## Screenshots
+
+| Home Feed | Full Preview | Source Selection |
+| :---: | :---: | :---: |
+| ![Home Feed](docs/screenshots/home.png) | ![Preview](docs/screenshots/preview.png) | ![Sources](docs/screenshots/choose-multiple-sources.png) |
+
+| Interactive Wallpaper | Desktop Wallpaper | Rotation Settings |
+| :---: | :---: | :---: |
+| ![Interactive](docs/screenshots/interactive.png) | ![Desktop](docs/screenshots/desktop-1.png) | ![Timer](docs/screenshots/timer-based.png) |
+
+| Lock Screen Wallpaper | Lock Screen Rotation |
+| :---: | :---: |
+| ![Lock Screen](docs/screenshots/lock-screen.png) | ![Lock Screen Rotation](docs/screenshots/lock-screen-2.png) |
 
 ## Requirements
 
@@ -65,6 +80,12 @@ dotnet test src/Lively/Lively.Imaging.Tests/Lively.Imaging.Tests.csproj
 
 Iceberg has no account, no analytics and no advertising. It talks to the
 picture sites you switch on, and to nothing else. See [PRIVACY.md](PRIVACY.md).
+
+## Acknowledgements & Credits
+
+- [Lively Wallpaper](https://github.com/rocksdanister/lively) by Dani John (rocksdanister) - the foundation and core wallpaper engine.
+- [Nagomi](https://github.com/msk1039/nagomi) by Mayank ([@msk1039](https://github.com/msk1039)) - interactive, procedurally animated koi pond that runs in your browser, adapted as a time-and-weather aware live wallpaper.
+- Wallhaven, Unsplash, Pixabay, Microsoft Bing, and Windows Spotlight for wallpaper imagery.
 
 ## License
 

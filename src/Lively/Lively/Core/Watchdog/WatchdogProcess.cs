@@ -27,7 +27,7 @@ namespace Lively.Core.Watchdog
             ProcessStartInfo start = new ProcessStartInfo()
             {
                 Arguments = Process.GetCurrentProcess().Id.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", "Watchdog", "Lively.Watchdog"),
+                FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", "Watchdog", "Iceberg.Watchdog"),
                 RedirectStandardInput = true,
                 //RedirectStandardOutput = true,
                 UseShellExecute = false,

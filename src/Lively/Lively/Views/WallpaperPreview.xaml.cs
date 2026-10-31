@@ -1,4 +1,4 @@
-﻿using Lively.Common.Helpers;
+using Lively.Common.Helpers;
 using Lively.Common.Helpers.Pinvoke;
 using Lively.Common.Services;
 using Lively.Core;
@@ -60,9 +60,31 @@ namespace Lively.Views
                 await wallpaper.ShowAsync();
 
                 //Attach wp hwnd to border ui element.
-                this.SetProgramToFramework(wallpaper.Handle, PreviewBorder);
-                //Fix for wallpaper overlapping window bordere in high dpi screens.
-                this.Width += 1;
+                if (wallpaper.Handle != IntPtr.Zero)
+                {
+                    this.SetProgramToFramework(wallpaper.Handle, PreviewBorder);
+                    //Fix for wallpaper overlapping window bordere in high dpi screens.
+                    this.Width += 1;
+                }
+                else if (model.LivelyInfo.Type == Lively.Models.Enums.WallpaperType.picture && System.IO.File.Exists(model.FilePath))
+                {
+                    try
+                    {
+                        var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                        bitmap.UriSource = new Uri(model.FilePath);
+                        bitmap.EndInit();
+                        PreviewBorder.Fill = new System.Windows.Media.ImageBrush(bitmap)
+                        {
+                            Stretch = System.Windows.Media.Stretch.Uniform
+                        };
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
             }
             catch (Exception e)
             {

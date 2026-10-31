@@ -80,7 +80,7 @@ namespace Lively.Services
                 WallpaperType.videostream => resourceManager.GetString("TextWebStream"),
                 WallpaperType.picture => resourceManager.GetString("TextPicture"),
                 //WallpaperType.heic => "HEIC",
-                (WallpaperType)(100) => "Lively Wallpaper",
+                (WallpaperType)(100) => "Iceberg Wallpaper",
                 _ => resourceManager.GetString("TextError"),
             };
         }

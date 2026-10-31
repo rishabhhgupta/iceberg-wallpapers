@@ -112,7 +112,7 @@
                             ToolTipService.ToolTip="Save to favourites">
                             <FontIcon
                                 FontSize="14"
-                                Foreground="White"
+                                Foreground="{x:Bind FavouriteBrush, Mode=OneWay}"
                                 Glyph="{x:Bind FavouriteGlyph, Mode=OneWay}" />
                         </Button>
 
@@ -142,7 +142,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -188,7 +187,7 @@
         <Grid Grid.Row="1">
             <ScrollViewer
                 x:Name="FeedScroll"
-                Padding="18,0,18,16"
+                Padding="18,0,18,0"
                 ViewChanged="FeedScroll_ViewChanged"
                 VerticalScrollBarVisibility="Auto">
                 <ItemsRepeater
@@ -256,42 +255,9 @@
             Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
             Severity="Warning" />
 
-        <!--  A small, quiet line: time of day, weather and where pictures come from.  -->
-        <Border
-            Grid.Row="3"
-            Padding="20,5,20,7"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0">
-            <Grid ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <TextBlock
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    FontSize="11"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Opacity="0.72"
-                    Text="{x:Bind ViewModel.FooterSummary, Mode=OneWay}"
-                    TextTrimming="CharacterEllipsis" />
-
-                <HyperlinkButton
-                    Grid.Column="1"
-                    Padding="0"
-                    VerticalAlignment="Center"
-                    Click="Sources_Click"
-                    Content="{x:Bind ViewModel.SourceSummary, Mode=OneWay}"
-                    FontSize="12"
-                    Opacity="0.8"
-                    ToolTipService.ToolTip="Choose which sites supply pictures" />
-            </Grid>
-        </Border>
-
         <!--  Full-size preview. Sits over the feed until closed.  -->
         <Grid
-            Grid.RowSpan="4"
+            Grid.RowSpan="3"
             Canvas.ZIndex="10"
             Background="#FF101014"
             Visibility="{x:Bind ViewModel.IsPreviewOpen, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
@@ -362,7 +328,17 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Source="{x:Bind ViewModel.PreviewImage, Mode=OneWay}"
-                    Stretch="Uniform" />
+                    Stretch="Uniform"
+                    Visibility="{x:Bind ViewModel.PreviewIsImage, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+                <MediaPlayerElement
+                    x:Name="FullPreviewPlayer"
+                    AreTransportControlsEnabled="False"
+                    AutoPlay="True"
+                    Loaded="FullPreviewPlayer_Loaded"
+                    Source="{x:Bind ViewModel.PreviewVideoSource, Mode=OneWay}"
+                    Stretch="Uniform"
+                    Visibility="{x:Bind ViewModel.PreviewIsVideo, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
 
                 <ProgressRing
                     Width="44"
@@ -423,7 +399,10 @@
                         Padding="0"
                         Command="{x:Bind ViewModel.TogglePreviewFavouriteCommand, Mode=OneWay}"
                         ToolTipService.ToolTip="Save to favourites">
-                        <FontIcon FontSize="15" Glyph="{x:Bind ViewModel.PreviewFavouriteGlyph, Mode=OneWay}" />
+                        <FontIcon
+                            FontSize="15"
+                            Foreground="{x:Bind ViewModel.PreviewFavouriteBrush, Mode=OneWay}"
+                            Glyph="{x:Bind ViewModel.PreviewFavouriteGlyph, Mode=OneWay}" />
                     </Button>
 
                     <Button

@@ -57,7 +57,7 @@ namespace Lively.UI.WinUI
         {
             if (!AppLifeCycleUtil.IsAppMutexRunning(SingleInstance.UniqueAppName))
             {
-                _ = NativeMethods.MessageBox(IntPtr.Zero, "Wallpaper core is not running, run Lively.exe first before opening UI.", "Lively Wallpaper", 16);
+                _ = NativeMethods.MessageBox(IntPtr.Zero, "Wallpaper core is not running, run Iceberg.exe first before opening UI.", "Iceberg Wallpapers", 16);
                 //Sad dev noises.. this.Exit() does not work without Window: https://github.com/microsoft/microsoft-ui-xaml/issues/5931
                 Process.GetCurrentProcess().Kill();
             }
@@ -118,23 +118,22 @@ namespace Lively.UI.WinUI
                     m_window.Activate();
                     Services.GetRequiredService<IMainNavigator>().NavigateTo(ContentPageType.appupdate);
                 }
+                else if (StartFlags.Minimized)
+                {
+                    // Started minimized: initialize window & services so tray and rotation work,
+                    // but do not activate or show on screen.
+                    _ = Services.GetRequiredService<MainWindow>();
+                }
                 else
                 {
-                    //TODO
+                    var m_window = Services.GetRequiredService<MainWindow>();
+                    m_window.Activate();
                 }
             }
             else
             {
                 var m_window = Services.GetRequiredService<MainWindow>();
                 m_window.Activate();
-
-                // A log-in start keeps rotation alive without stealing the screen.
-                // Hide rather than minimise: a minimised window leaves a taskbar
-                // button, and the tray icon is meant to be the only trace.
-                if (StartFlags.Minimized)
-                {
-                    m_window.DispatcherQueue.TryEnqueue(() => m_window.Hide());
-                }
             }
         }
 

@@ -33,7 +33,7 @@
 
   <Applications>
     <Application Id="App" 
-      Executable="Build\Lively.exe"
+      Executable="Build\Iceberg.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
         DisplayName="Iceberg Wallpapers"
@@ -51,7 +51,7 @@
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
       <Extensions>
-        <desktop:Extension Category="windows.startupTask" Executable="Build\Lively.exe" EntryPoint="Windows.FullTrustApplication">
+        <desktop:Extension Category="windows.startupTask" Executable="Build\Iceberg.exe" EntryPoint="Windows.FullTrustApplication">
           <desktop:StartupTask TaskId="AppStartup" Enabled="false" DisplayName="Iceberg Wallpapers" />
         </desktop:Extension>
       </Extensions>

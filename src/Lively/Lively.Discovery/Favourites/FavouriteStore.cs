@@ -48,6 +48,8 @@ public sealed class FavouriteStore
     private readonly List<FavouriteItem> _items = new();
     private bool _loaded;
 
+    public event EventHandler<string>? Changed;
+
     public FavouriteStore(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -73,8 +75,12 @@ public sealed class FavouriteStore
 
                     if (doc?.Items is { } items)
                     {
-                        // Drop malformed entries rather than fail the whole load.
-                        _items.AddRange(items.Where(i => !string.IsNullOrWhiteSpace(i.Id)));
+                        // Drop malformed entries and deduplicate by ID.
+                        var distinct = items
+                            .Where(i => !string.IsNullOrWhiteSpace(i.Id))
+                            .GroupBy(i => i.Id, StringComparer.OrdinalIgnoreCase)
+                            .Select(g => g.First());
+                        _items.AddRange(distinct);
                     }
                 }
                 catch (JsonException)
@@ -106,7 +112,7 @@ public sealed class FavouriteStore
     public bool Contains(string id)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
-        lock (_items) return _items.Any(i => string.Equals(i.Id, id, StringComparison.Ordinal));
+        lock (_items) return _items.Any(i => string.Equals(i.Id, id, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>Adds if absent. Returns true when the list actually changed.</summary>
@@ -118,10 +124,11 @@ public sealed class FavouriteStore
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            if (_items.Any(i => string.Equals(i.Id, item.Id, StringComparison.Ordinal))) return false;
+            if (_items.Any(i => string.Equals(i.Id, item.Id, StringComparison.OrdinalIgnoreCase))) return false;
 
             _items.Insert(0, item with { AddedAt = item.AddedAt == default ? DateTimeOffset.UtcNow : item.AddedAt });
             await SaveUnsafeAsync(cancellationToken).ConfigureAwait(false);
+            Changed?.Invoke(this, item.Id);
             return true;
         }
         finally
@@ -139,8 +146,12 @@ public sealed class FavouriteStore
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var removed = _items.RemoveAll(i => string.Equals(i.Id, id, StringComparison.Ordinal)) > 0;
-            if (removed) await SaveUnsafeAsync(cancellationToken).ConfigureAwait(false);
+            var removed = _items.RemoveAll(i => string.Equals(i.Id, id, StringComparison.OrdinalIgnoreCase)) > 0;
+            if (removed)
+            {
+                await SaveUnsafeAsync(cancellationToken).ConfigureAwait(false);
+                Changed?.Invoke(this, id);
+            }
             return removed;
         }
         finally

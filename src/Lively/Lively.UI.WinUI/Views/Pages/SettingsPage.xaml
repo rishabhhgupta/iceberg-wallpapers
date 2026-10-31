@@ -12,10 +12,14 @@
         <converters:BooleanToVisibilityConverter x:Key="VisibleWhenTrue" />
     </Page.Resources>
 
-    <ScrollViewer Padding="24,16,24,32">
+    <ScrollViewer
+        x:Name="SettingsScroll"
+        Padding="24,16,24,32"
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled">
         <StackPanel
             MaxWidth="900"
-            HorizontalAlignment="Stretch"
+            HorizontalAlignment="Center"
             Spacing="22">
 
             <StackPanel Spacing="2">
@@ -31,37 +35,26 @@
             <TextBlock
                 Foreground="{ThemeResource SystemFillColorSuccessBrush}"
                 Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                TextWrapping="Wrap" />
+                TextWrapping="Wrap"
+                Visibility="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay, Converter={StaticResource VisibleWhenTrue}}" />
 
-            <!--  Appearance and behaviour  -->
+            <!--  Appearance: theme only  -->
             <StackPanel Spacing="4">
                 <TextBlock
                     Margin="2,0,0,4"
                     Style="{StaticResource BodyStrongTextBlockStyle}"
-                    Text="Appearance and behaviour" />
+                    Text="Appearance" />
 
                 <controls:SettingsCard
-                    Description="Follow Windows, or force light or dark. Iceberg no longer tints itself from the wallpaper."
+                    Description="System, light or dark."
                     Header="Theme">
-                    <RadioButtons
-                        MaxColumns="3"
+                    <ComboBox
+                        MinWidth="180"
                         SelectedIndex="{x:Bind ViewModel.ThemeIndex, Mode=TwoWay}">
-                        <x:String>Follow Windows</x:String>
-                        <x:String>Light</x:String>
-                        <x:String>Dark</x:String>
-                    </RadioButtons>
-                </controls:SettingsCard>
-
-                <controls:SettingsCard
-                    Description="Starts quietly in the notification area and never opens a window at log-in."
-                    Header="Start with Windows">
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.StartWithWindows, Mode=TwoWay}" />
-                </controls:SettingsCard>
-
-                <controls:SettingsCard
-                    Description="The tray icon is how the window comes back after it is closed."
-                    Header="Tray icon">
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowTrayIcon, Mode=TwoWay}" />
+                        <ComboBoxItem Content="System" />
+                        <ComboBoxItem Content="Light" />
+                        <ComboBoxItem Content="Dark" />
+                    </ComboBox>
                 </controls:SettingsCard>
             </StackPanel>
 
@@ -74,27 +67,69 @@
 
                 <controls:SettingsCard
                     Description="{x:Bind ViewModel.RotationSummary, Mode=OneWay}"
-                    Header="Change the wallpaper automatically">
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.RotationEnabled, Mode=TwoWay}" />
-                </controls:SettingsCard>
-
-                <controls:SettingsCard
-                    Description="Time of day changes twice a day; a timer counts the hours you choose."
-                    Header="When should it change?">
-                    <RadioButtons
-                        MaxColumns="2"
+                    Header="Automatic wallpaper change">
+                    <ComboBox
+                        MinWidth="190"
                         SelectedIndex="{x:Bind ViewModel.RotationModeIndex, Mode=TwoWay}">
-                        <x:String>Time of day</x:String>
-                        <x:String>Timer</x:String>
-                    </RadioButtons>
+                        <ComboBoxItem Content="Off" />
+                        <ComboBoxItem Content="Time of the day" />
+                        <ComboBoxItem Content="Timer" />
+                    </ComboBox>
+                </controls:SettingsCard>
+
+                <controls:SettingsCard Header="Wallpaper rotation source">
+                    <ComboBox
+                        MinWidth="210"
+                        SelectedIndex="{x:Bind ViewModel.RotationSourceIndex, Mode=TwoWay}">
+                        <ComboBoxItem Content="Favourites" />
+                        <ComboBoxItem Content="Predefined" />
+                        <ComboBoxItem Content="Random" />
+                    </ComboBox>
                 </controls:SettingsCard>
 
                 <controls:SettingsCard
-                    Header="Timer"
+                    Header="Site"
+                    Visibility="{x:Bind ViewModel.IsPredefinedSource, Mode=OneWay, Converter={StaticResource VisibleWhenTrue}}">
+                    <ComboBox
+                        MinWidth="190"
+                        ItemsSource="{x:Bind ViewModel.SiteNames, Mode=OneWay}"
+                        SelectedIndex="{x:Bind ViewModel.SiteIndex, Mode=TwoWay}" />
+                </controls:SettingsCard>
+
+                <controls:SettingsCard
+                    Header="Collection"
+                    Visibility="{x:Bind ViewModel.IsPredefinedSource, Mode=OneWay, Converter={StaticResource VisibleWhenTrue}}">
+                    <ComboBox
+                        MinWidth="190"
+                        ItemsSource="{x:Bind ViewModel.CollectionNames, Mode=OneWay}"
+                        SelectedIndex="{x:Bind ViewModel.CollectionIndex, Mode=TwoWay}" />
+                </controls:SettingsCard>
+
+                <controls:SettingsCard
+                    Description="Something bright in the day, something dark at night."
+                    Header="Day time"
+                    Visibility="{x:Bind ViewModel.IsTimeOfDayMode, Mode=OneWay, Converter={StaticResource VisibleWhenTrue}}">
+                    <TimePicker
+                        ClockIdentifier="12HourClock"
+                        Time="{x:Bind ViewModel.DayTime, Mode=TwoWay}" />
+                </controls:SettingsCard>
+
+                <controls:SettingsCard
+                    Header="Night time"
+                    Visibility="{x:Bind ViewModel.IsTimeOfDayMode, Mode=OneWay, Converter={StaticResource VisibleWhenTrue}}">
+                    <TimePicker
+                        ClockIdentifier="12HourClock"
+                        Time="{x:Bind ViewModel.NightTime, Mode=TwoWay}" />
+                </controls:SettingsCard>
+
+                <controls:SettingsCard
+                    Header="When the timer runs"
                     Visibility="{x:Bind ViewModel.IsTimerMode, Mode=OneWay, Converter={StaticResource VisibleWhenTrue}}">
-                    <ComboBox SelectedIndex="{x:Bind ViewModel.TimerModeIndex, Mode=TwoWay}">
+                    <ComboBox
+                        MinWidth="210"
+                        SelectedIndex="{x:Bind ViewModel.TimerModeIndex, Mode=TwoWay}">
                         <ComboBoxItem Content="Every day at midnight" />
-                        <ComboBoxItem Content="Every 24 hours from the last change" />
+                        <ComboBoxItem Content="Every 24 hours" />
                         <ComboBoxItem Content="Custom interval" />
                     </ComboBox>
                 </controls:SettingsCard>
@@ -127,27 +162,9 @@
                 </controls:SettingsCard>
 
                 <controls:SettingsCard
-                    Description="{x:Bind ViewModel.NextChangeSummary, Mode=OneWay}"
-                    Header="Next change">
-                    <TextBlock
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="{x:Bind ViewModel.RotationSummary, Mode=OneWay}"
-                        TextWrapping="Wrap" />
-                </controls:SettingsCard>
-
-                <controls:SettingsCard
-                    Description="{x:Bind ViewModel.LockScreenSummary, Mode=OneWay}"
-                    Header="Windows lock screen">
-                    <StackPanel
-                        VerticalAlignment="Center"
-                        Orientation="Horizontal"
-                        Spacing="10">
-                        <Button Command="{x:Bind ViewModel.UseLastAsLockScreenCommand, Mode=OneWay}" Content="Use last wallpaper" />
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            Text="Change with rotation" />
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.RotateLockScreenToo, Mode=TwoWay}" />
-                    </StackPanel>
+                    Description="Change the Windows lock screen picture whenever the wallpaper rotates."
+                    Header="Auto change in lock screen">
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.RotateLockScreenToo, Mode=TwoWay}" />
                 </controls:SettingsCard>
             </StackPanel>
 
@@ -156,16 +173,16 @@
                 <TextBlock
                     Margin="2,0,0,4"
                     Style="{StaticResource BodyStrongTextBlockStyle}"
-                    Text="Storage" />
+                    Text="Downloaded pictures and videos" />
 
                 <controls:SettingsCard
                     Description="{x:Bind ViewModel.CacheSummary, Mode=OneWay}"
-                    Header="Downloaded pictures and videos">
+                    Header="Clear downloaded files">
                     <Button Command="{x:Bind ViewModel.ClearCacheCommand, Mode=OneWay}" Content="Clear" />
                 </controls:SettingsCard>
             </StackPanel>
 
-            <!--  Animated wallpapers  -->
+            <!--  Animated wallpapers: the whole card opens the page  -->
             <StackPanel Spacing="4">
                 <TextBlock
                     Margin="2,0,0,4"
@@ -174,38 +191,26 @@
 
                 <controls:SettingsCard
                     Description="Which player is used and how much of the graphics card it may take."
-                    Header="Player and performance">
-                    <Button
-                        Command="{x:Bind ViewModel.OpenPageCommand, Mode=OneWay}"
-                        CommandParameter="settingsPerformance"
-                        Content="Open" />
+                    Header="Player and performance"
+                    Tag="settingsPerformance"
+                    Tapped="Card_Tapped">
+                    <FontIcon
+                        FontSize="14"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE76C;" />
                 </controls:SettingsCard>
 
                 <controls:SettingsCard
-                    Description="Use a Lively wallpaper as your Windows screensaver."
-                    Header="Screensaver">
-                    <Button
-                        Command="{x:Bind ViewModel.OpenPageCommand, Mode=OneWay}"
-                        CommandParameter="settingsScreensaver"
-                        Content="Open" />
+                    Description="Show your favourite pictures when the screen is idle."
+                    Header="Screensaver"
+                    Tag="settingsScreensaver"
+                    Tapped="Card_Tapped">
+                    <FontIcon
+                        FontSize="14"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE76C;" />
                 </controls:SettingsCard>
             </StackPanel>
-
-            <!--  Advanced, folded away  -->
-            <Expander
-                HorizontalAlignment="Stretch"
-                Header="Advanced">
-                <StackPanel Spacing="4">
-                    <controls:SettingsCard
-                        Description="The diagnostic window and the log files."
-                        Header="Debug and logs">
-                        <Button
-                            Command="{x:Bind ViewModel.OpenPageCommand, Mode=OneWay}"
-                            CommandParameter="settingsSystem"
-                            Content="Open" />
-                    </controls:SettingsCard>
-                </StackPanel>
-            </Expander>
 
             <!--  About  -->
             <StackPanel Spacing="4">
@@ -216,11 +221,13 @@
 
                 <controls:SettingsCard
                     Description="Version 1.0, credits and the licence."
-                    Header="Iceberg Wallpapers">
-                    <Button
-                        Command="{x:Bind ViewModel.OpenPageCommand, Mode=OneWay}"
-                        CommandParameter="about"
-                        Content="Open" />
+                    Header="Iceberg Wallpapers"
+                    Tag="about"
+                    Tapped="Card_Tapped">
+                    <FontIcon
+                        FontSize="14"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE76C;" />
                 </controls:SettingsCard>
             </StackPanel>
         </StackPanel>

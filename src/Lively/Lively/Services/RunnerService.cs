@@ -1,4 +1,4 @@
-﻿using Lively.Common.Helpers;
+using Lively.Common.Helpers;
 using Lively.Common.Helpers.Pinvoke;
 using Lively.Common.Services;
 using Lively.Core.Display;
@@ -34,12 +34,12 @@ namespace Lively.Services
 
             if (PackageUtil.IsRunningAsPackaged)
             {
-                fileName = Path.Combine(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\")), "Lively.UI.WinUI.exe");
+                fileName = Path.Combine(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\")), "Iceberg.UI.exe");
                 workingDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\"));
             }
             else
             {
-                fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins", "UI", "Lively.UI.WinUI.exe");
+                fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins", "UI", "Iceberg.UI.exe");
                 workingDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins", "UI");
             }
         }
@@ -63,6 +63,15 @@ namespace Lively.Services
         public void ShowAppUpdatePage()
         {
             ShowUI("--appUpdate true", "LM SHOWAPPUPDATEPAGE");
+        }
+
+        public void RotateWallpaperNow()
+        {
+            if (processUI == null)
+            {
+                ShowUIMinimized();
+            }
+            processUI?.StandardInput.WriteLine("LM ROTATENOW");
         }
 
         public void ShowCustomisWallpaperePanel()

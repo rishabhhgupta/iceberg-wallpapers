@@ -136,25 +136,25 @@
     <value>API-rajapinta ja dokumentaatio</value>
   </data>
   <data name="DescExplorerCrash" xml:space="preserve">
-    <value>Lively on kohdannut kriittisen virheen.
+    <value>Iceberg on kohdannut kriittisen virheen.
 
-Windows Explorer uudelleenkäynnistyi kahdesti viimeisen 30 sekunnin aikana! Tämä voi olla ristiriita Livelyn ja muiden työpöydän taustakuvapalveluiden tai Windowsin kanssa. Uusien virheiden varalta kaikki taustakuvat on päätetty.</value>
+Windows Explorer uudelleenkäynnistyi kahdesti viimeisen 30 sekunnin aikana! Tämä voi olla ristiriita Icebergn ja muiden työpöydän taustakuvapalveluiden tai Windowsin kanssa. Uusien virheiden varalta kaikki taustakuvat on päätetty.</value>
   </data>
   <data name="DescIncompatibleTaskbarTheme" xml:space="preserve">
     <value>Yhteensopimaton ohjelma löytyi, tehtäväpalkin teema poistettiin käytöstä</value>
   </data>
   <data name="Website.Description" xml:space="preserve">
-    <value>Livelyn viralliset verkkosivut</value>
+    <value>Icebergn viralliset verkkosivut</value>
   </data>
   <data name="DescOledScreensaverNotice" xml:space="preserve">
     <value>Useimmat nykyaikaiset LCD ja LED-näytöt eivät kärsi burn-in ongelmista ja siksi mitä tahansa taustakuvaa voidaan käyttää näytönsäästäjä.
 
 OLED, Plasma tai CRT näytöillä, jotka ovat alttiita palamiselle, on suositeltavaa käyttää taustakuvaa säännöllisellä liikeellä ja yleisellä tummalla teemalla, jonka on tarkoitus lieventää palamista, mutta tämä ominaisuus on testaamaton ja sen tehokkuutta ei voida taata.
 
-Livelyn näytönsäästäjien päätarkoituksena on lisätä toinen kustomisoinnin kerros tietokoneeseen, käytä näytönsäästäjiä kuten burn-in -suojana omalla riskilläsi!</value>
+Icebergn näytönsäästäjien päätarkoituksena on lisätä toinen kustomisoinnin kerros tietokoneeseen, käytä näytönsäästäjiä kuten burn-in -suojana omalla riskilläsi!</value>
   </data>
   <data name="ReportBug.Description" xml:space="preserve">
-    <value>Ilmoita ongelmasta Livelyn kanssa</value>
+    <value>Ilmoita ongelmasta Icebergn kanssa</value>
   </data>
   <data name="AddWallpaperFileBrowse.Header" xml:space="preserve">
     <value>Valitse tiedosto</value>
@@ -180,7 +180,7 @@ Haitalliset sovellukset voivat isännöidä haittaohjelmia ja viruksia ja vahing
 Jatka vain, jos luotat tähän sovellukseen.</value>
   </data>
   <data name="MinimizedTray.Text" xml:space="preserve">
-    <value>Lively piilotetaan järjestelmäkuvakkeeseen oikeassa alakulmassa, paina hiiren oikealla painikkeella jatkaaksesi.</value>
+    <value>Iceberg piilotetaan järjestelmäkuvakkeeseen oikeassa alakulmassa, paina hiiren oikealla painikkeella jatkaaksesi.</value>
   </data>
   <data name="DescriptionPleaseRestartLively" xml:space="preserve">
     <value>Käynnistä ohjelma uudelleen, jotta asetus tulee voimaan</value>
@@ -198,13 +198,13 @@ Jatka vain, jos luotat tähän sovellukseen.</value>
     <value>Valitse Näyttö</value>
   </data>
   <data name="DescriptionUpdateAvailable" xml:space="preserve">
-    <value>Livelyn uusi versio on saatavilla!</value>
+    <value>Icebergn uusi versio on saatavilla!</value>
   </data>
   <data name="DescriptionWebpageLoad" xml:space="preserve">
     <value>Syötä sivuston linkki ladataksesi, shadertoy.com shader linkit ovat tuettuja</value>
   </data>
   <data name="DescriptionWelcomeWizard" xml:space="preserve">
-    <value>Tämä avustaja auttaa sinua asentamaan Livelyn</value>
+    <value>Tämä avustaja auttaa sinua asentamaan Icebergn</value>
   </data>
   <data name="DescriptionWindowsNCodecInstall" xml:space="preserve">
     <value>Windows N / KN versiosi vaatii ylimääräisten koodekkien lataamisen tukemaan taustakuvien videon toistoa</value>
@@ -213,24 +213,24 @@ Jatka vain, jos luotat tähän sovellukseen.</value>
     <value>Näytä tukesi lahjoittamalla kehittäjälle kupillinen kahvia</value>
   </data>
   <data name="DescSwitchBranchBetaWarning" xml:space="preserve">
-    <value>Olet vaihtamassa Livelyn beta (kehittäjä) versioon.
+    <value>Olet vaihtamassa Icebergn beta (kehittäjä) versioon.
 Päivityksiä tulee usein ja ne saattavat sisältää vikoja!</value>
   </data>
   <data name="HideSysTray.Description" xml:space="preserve">
-    <value>Järjestelmäkuvakkeen näkyvyys, Lively jatkaa suorittamissa piilotetussa kuvakkeessa</value>
+    <value>Järjestelmäkuvakkeen näkyvyys, Iceberg jatkaa suorittamissa piilotetussa kuvakkeessa</value>
   </data>
   <data name="HideSysTray.Header" xml:space="preserve">
     <value>Ilmaisinalueen kuvake</value>
   </data>
   <data name="Language.Description" xml:space="preserve">
-    <value>Lively käynnistyy uudelleen vaihtaakseen kielen</value>
+    <value>Iceberg käynnistyy uudelleen vaihtaakseen kielen</value>
   </data>
   <data name="Language.Header" xml:space="preserve">
     <value>Kieli</value>
   </data>
   <data name="LivelyExceptionAppUpdateFail" xml:space="preserve">
     <value>Päivitys epäonnistui, kokeile asentajan lataamista täältä:
-https://github.com/rocksdanister/lively/releases</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers/releases</value>
   </data>
   <data name="LivelyExceptionDamagedZipFile" xml:space="preserve">
     <value>Vaurioitunut taustakuvatiedosto, kokeile uudelleenlatausta</value>
@@ -239,40 +239,40 @@ https://github.com/rocksdanister/lively/releases</value>
     <value>Hups... Näyttää siltä, että jokin meni vikaan :(
 Jotta voisimme ymmärtää tämän virheen paremmin ja korjata ongelman, jaa lokitiedosto kehittäjälle.
 Ohjeet lokitiedoston jakamiseen:
-https://github.com/rocksdanister/lively/wiki</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionHighContrastMode" xml:space="preserve">
-    <value>Lively ei toimi kunnolla Windows High Contrast -tilassa käytössä!
+    <value>Iceberg ei toimi kunnolla Windows High Contrast -tilassa käytössä!
 Poista High Contrast -tila käytöstä ja yritä uudelleen</value>
   </data>
   <data name="LivelyExceptionMediaPlayback" xml:space="preserve">
     <value>Media playback failed :(
-Try changing the videoplayer in lively settings.
+Try changing the videoplayer in iceberg settings.
 
 In order to better understand this error and fix the issue, share the log file with the developer.
 Instructions for sharing log file:
-https://github.com/rocksdanister/lively/wiki</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionNotLivelyZip" xml:space="preserve">
-    <value>Ei Lively-taustakuvatiedosto</value>
+    <value>Ei Iceberg-taustakuvatiedosto</value>
   </data>
   <data name="LivelyExceptionSafeModeStart" xml:space="preserve">
-    <value>Lively ei sulkeutunut kunnolla, aloitetaan turvallisessa tilassa.
+    <value>Iceberg ei sulkeutunut kunnolla, aloitetaan turvallisessa tilassa.
 Haluatko palauttaa viimeisimmät taustakuvat?</value>
   </data>
   <data name="LivelyExceptionWorkerWSetupFail" xml:space="preserve">
-    <value>Näyttää siltä, että jotkut asetukset täytyy asettaa, jotta Lively saataisiin toimimaan:
+    <value>Näyttää siltä, että jotkut asetukset täytyy asettaa, jotta Iceberg saataisiin toimimaan:
 1. Paina Win + R -näppäimiä avataksesi Suorita-sovelluksen,
 2. Kirjoita "SystemPropertiesPerformance.exe" ja, napsauta "OK" avataksesi suorituskykyasetukset.
 3. Ota käyttöön "Animoi ohjaimet ja elementit ikkunoiden sisäpuolella" (Jos ne on jo valittu, poista ja valitse uudelleen) &amp; ota käyttöön.
 4. Napsauta "Käytä" ja paina "OK" sulkeaksesi ikkunan.
 
 Jos Windows 7 on juuri asetettu - Säädä paras ulkonäkö &amp; Käytä.
-Jos ikkuna ei vieläkään toimi, sulje ja käynnistä Windows ja Lively uudestaan.
+Jos ikkuna ei vieläkään toimi, sulje ja käynnistä Windows ja Iceberg uudestaan.
 (Ei toimi joissakin Windows 10 Insider Build versioissa)</value>
   </data>
   <data name="Startup.Description" xml:space="preserve">
-    <value>Livelyn täytyy pystyä suorittumaan taustalla, jotta taustakuva saadaan toimimaan</value>
+    <value>Icebergn täytyy pystyä suorittumaan taustalla, jotta taustakuva saadaan toimimaan</value>
   </data>
   <data name="Startup.Header" xml:space="preserve">
     <value>Käynnistä Windowsin mukana</value>
@@ -356,7 +356,7 @@ Jos ikkuna ei vieläkään toimi, sulje ja käynnistä Windows ja Lively uudesta
     <value>Tallenna tiedostoon</value>
   </data>
   <data name="TextFeatureMissing" xml:space="preserve">
-    <value>Jotkin ominaisuudet eivät ole käytettävissä tässä Livelyn versiossa</value>
+    <value>Jotkin ominaisuudet eivät ole käytettävissä tässä Icebergn versiossa</value>
   </data>
   <data name="TextFileNotFound" xml:space="preserve">
     <value>Tiedostoa ei löydy</value>
@@ -425,7 +425,7 @@ Jos ikkuna ei vieläkään toimi, sulje ja käynnistä Windows ja Lively uudesta
     <value>Paikalla</value>
   </data>
   <data name="TextOpenLively" xml:space="preserve">
-    <value>Avaa Lively</value>
+    <value>Avaa Iceberg</value>
   </data>
   <data name="PauseAlgorithmTypeAllProcess.Content" xml:space="preserve">
     <value>Kaikki prosessit</value>
@@ -488,7 +488,7 @@ Jos ikkuna ei vieläkään toimi, sulje ja käynnistä Windows ja Lively uudesta
     <value>Pysäytä</value>
   </data>
   <data name="StoreReview.Content" xml:space="preserve">
-    <value>Nauttitko Livelyn käytöstä? Jätä arvostelu :)</value>
+    <value>Nauttitko Icebergn käytöstä? Jätä arvostelu :)</value>
   </data>
   <data name="TextSupport.Content" xml:space="preserve">
     <value>Tuki</value>
@@ -614,7 +614,7 @@ Jos ikkuna ei vieläkään toimi, sulje ja käynnistä Windows ja Lively uudesta
     <value>Keskeytä taustakuva, kun näitä sovelluksia käytetään</value>
   </data>
   <data name="TipAppTheme" xml:space="preserve">
-    <value>Lively mukautuu järjestelmän teeman asetuksiin, muuttaaksesi ulkoasua, mene</value>
+    <value>Iceberg mukautuu järjestelmän teeman asetuksiin, muuttaaksesi ulkoasua, mene</value>
   </data>
   <data name="BatteryPower.Description" xml:space="preserve">
     <value>Muuta toistoa, kun ei ole latauksessa</value>
@@ -710,7 +710,7 @@ Jos ikkuna ei vieläkään toimi, sulje ja käynnistä Windows ja Lively uudesta
     <value>Koko näytön sovellukset</value>
   </data>
   <data name="TitleAppName" xml:space="preserve">
-    <value>Lively Taustakuva</value>
+    <value>Iceberg Taustakuva</value>
   </data>
   <data name="AppRules.Header" xml:space="preserve">
     <value>Sovelluskohtaiset säännöt</value>
@@ -773,7 +773,7 @@ Jos ikkuna ei vieläkään toimi, sulje ja käynnistä Windows ja Lively uudesta
     <value>Kirjasto</value>
   </data>
   <data name="TitleLivelySetup" xml:space="preserve">
-    <value>Lively asetukset</value>
+    <value>Iceberg asetukset</value>
   </data>
   <data name="TitleLocation" xml:space="preserve">
     <value>Sijainti</value>

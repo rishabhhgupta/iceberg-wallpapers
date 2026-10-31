@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using GrpcDotNetNamedPipes;
 using Lively.Commandline;
 using Lively.Common;
@@ -184,15 +184,15 @@ namespace Lively
             // First run setup wizard show. A log-in start must never put a window
             // on screen: Windows gives a packaged start-up task no argument we
             // can read, so compare the process start with the log-on time.
-            var showWindowOnStart = userSettings.Settings.IsFirstRun || !StartedAtLogon();
+            var isStartupLaunch = commandArgs.Any(a => a.Equals("--startup", StringComparison.OrdinalIgnoreCase) || a.Equals("--minimized", StringComparison.OrdinalIgnoreCase));
+            var showWindowOnStart = userSettings.Settings.IsFirstRun || (!isStartupLaunch && !StartedAtLogon());
             if (showWindowOnStart)
             {
                 Services.GetRequiredService<IRunnerService>().ShowUI();
             }
-            else if (PackageUtil.IsRunningAsPackaged && IcebergRotationEnabled())
+            else
             {
-                // Windows started us at log-in and rotation is on. Keep the timer
-                // alive with the window hidden: the tray icon is the only trace.
+                // Started at logon or with --startup: keep the UI hidden in the tray.
                 Services.GetRequiredService<IRunnerService>().ShowUIMinimized();
             }
 

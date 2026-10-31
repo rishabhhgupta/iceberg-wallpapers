@@ -211,36 +211,36 @@
     <value>Покажи подршку куповином кафе за програмере</value>
   </data>
   <data name="DescSwitchBranchBetaWarning" xml:space="preserve">
-    <value>Спремате се да пређете на бета (развојну) верзију програма Lively.
+    <value>Спремате се да пређете на бета (развојну) верзију програма Iceberg.
 Ажурирања ће бити честа и могу садржати грешке!</value>
   </data>
   <data name="HideSysTray.Description" xml:space="preserve">
-    <value>Видљивост иконица системске траке. Lively ће наставити да ради са скривеном иконицом</value>
+    <value>Видљивост иконица системске траке. Iceberg ће наставити да ради са скривеном иконицом</value>
   </data>
   <data name="HideSysTray.Header" xml:space="preserve">
     <value>Икона у позадини система</value>
   </data>
   <data name="Language.Description" xml:space="preserve">
-    <value>Lively ће се рестартовати како би промене језика добила ефекат</value>
+    <value>Iceberg ће се рестартовати како би промене језика добила ефекат</value>
   </data>
   <data name="Language.Header" xml:space="preserve">
     <value>Језик</value>
   </data>
   <data name="LivelyExceptionAppUpdateFail" xml:space="preserve">
     <value>Неуспешна надоградња; покушај да скинеш инсталацију са:
-https://github.com/rocksdanister/lively/releases</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers/releases</value>
   </data>
   <data name="LivelyExceptionDamagedZipFile" xml:space="preserve">
     <value>Оштећен позадински фајл, покушај да поново преузмеш.</value>
   </data>
   <data name="LivelyExceptionGeneral" xml:space="preserve">
-    <value>Упс... Изгледа да је нешто направило грешку :(Да би боље разумео ову грешку и да решис проблем, подели евиденцију апликације(лог) са развијачем апликације.Упутства за поделу евиденције:https://github.com/rocksdanister/lively/wiki</value>
+    <value>Упс... Изгледа да је нешто направило грешку :(Да би боље разумео ову грешку и да решис проблем, подели евиденцију апликације(лог) са развијачем апликације.Упутства за поделу евиденције:https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionHighContrastMode" xml:space="preserve">
     <value>Ливелy не може да ради нормлано са Њиндоњс Висок Контраст режимом!Искљуци Високи Контраст режим и покушај поново</value>
   </data>
   <data name="LivelyExceptionMediaPlayback" xml:space="preserve">
-    <value>Медијски плеј-бек неуспешан :(Покушај да промениш видео-плејер у Ливелy подешавањима.Да би боље разумео проблем и могао да решиш грешку подели евиденцију(лог) фајл и пошаљи програмеру.Инструкције за дељење евиденције:https://github.com/rocksdanister/lively/wiki</value>
+    <value>Медијски плеј-бек неуспешан :(Покушај да промениш видео-плејер у Ливелy подешавањима.Да би боље разумео проблем и могао да решиш грешку подели евиденцију(лог) фајл и пошаљи програмеру.Инструкције за дељење евиденције:https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionNotLivelyZip" xml:space="preserve">
     <value>Није Ливелy позадински фајл.</value>
@@ -344,7 +344,7 @@ https://github.com/rocksdanister/lively/releases</value>
     <value>Сачувај у датотеци</value>
   </data>
   <data name="TextFeatureMissing" xml:space="preserve">
-    <value>Неке функције нису доступне у овој верзији Lively програма</value>
+    <value>Неке функције нису доступне у овој верзији Iceberg програма</value>
   </data>
   <data name="TextFileNotFound" xml:space="preserve">
     <value>Фајл није пронађен</value>

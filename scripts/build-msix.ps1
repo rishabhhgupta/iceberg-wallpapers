@@ -4,10 +4,10 @@
 
 .DESCRIPTION
     Lively is split into two halves:
-      * the "core"  -> src\Lively\Lively\Lively.csproj      (produces Lively.exe)
+      * the "core"  -> src\Lively\Lively\Lively.csproj      (produces Iceberg.exe)
       * the "UI"    -> src\Lively\Lively.UI.WinUI\...csproj (produces the WinUI app)
 
-    The Store package manifest points at Build\Lively.exe, so the core output has
+    The Store package manifest points at Build\Iceberg.exe, so the core output has
     to be staged into src\Lively\Lively.UI.WinUI\Build before the UI project is
     packaged. This script does that staging, builds the package, and copies the
     result into artifacts\msix.
@@ -66,7 +66,7 @@ if ($Clean) {
     }
 }
 
-Write-Step "Publishing core (Lively.exe)"
+Write-Step "Publishing core (Iceberg.exe)"
 New-Item -ItemType Directory -Path $publishDir -Force | Out-Null
 & $Dotnet publish $coreProj `
     -c $Configuration `
@@ -77,8 +77,8 @@ New-Item -ItemType Directory -Path $publishDir -Force | Out-Null
 
 if ($LASTEXITCODE -ne 0) { throw "Core publish failed with exit code $LASTEXITCODE" }
 
-$coreExe = Join-Path $publishDir 'Lively.exe'
-if (-not (Test-Path $coreExe)) { throw "Core publish did not produce Lively.exe" }
+$coreExe = Join-Path $publishDir 'Iceberg.exe'
+if (-not (Test-Path $coreExe)) { throw "Core publish did not produce Iceberg.exe" }
 
 Write-Step "Staging core into Lively.UI.WinUI\Build"
 New-Item -ItemType Directory -Path $stageDir -Force | Out-Null

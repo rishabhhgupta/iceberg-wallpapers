@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Lively.Common.Services
 {
@@ -12,6 +12,7 @@ namespace Lively.Common.Services
         void SetBusyUI(bool isBusy);
         void ShowCustomisWallpaperePanel();
         void ShowAppUpdatePage();
+        void RotateWallpaperNow();
         bool IsVisibleUI { get; }
         void SaveRectUI();
     }

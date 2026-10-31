@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,6 +9,7 @@ using Lively.Common.Services;
 using Lively.Grpc.Client;
 using Lively.Models;
 using Lively.Models.Enums;
+using Lively.Sources;
 using Lively.UI.WinUI.Services;
 
 namespace Lively.UI.WinUI.ViewModels
@@ -23,6 +26,9 @@ namespace Lively.UI.WinUI.ViewModels
         private readonly IcebergService service;
         private readonly IMainNavigator navigator;
         private readonly IUserSettingsClient userSettings;
+        private readonly List<string> siteIds = new();
+        private readonly List<string> collectionIds = new();
+        private readonly List<string> collectionLabels = new();
         private bool loading = true;
 
         public SettingsViewModel(IcebergService service, IMainNavigator navigator, IUserSettingsClient userSettings)
@@ -36,19 +42,23 @@ namespace Lively.UI.WinUI.ViewModels
         [ObservableProperty]
         private int themeIndex;
 
+        // 0 = favourites, 1 = one site and collection, 2 = every site.
         [ObservableProperty]
-        private bool startWithWindows;
+        [NotifyPropertyChangedFor(nameof(IsPredefinedSource))]
+        private int rotationSourceIndex = 2;
 
         [ObservableProperty]
-        private bool showTrayIcon;
+        private int siteIndex;
 
         [ObservableProperty]
-        private bool rotationEnabled = true;
+        private int collectionIndex;
 
-        // 0 = time of day, 1 = timer.
+        // 0 = off, 1 = time of day, 2 = timer.
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsTimeOfDayMode))]
         [NotifyPropertyChangedFor(nameof(IsTimerMode))]
-        private int rotationModeIndex;
+        [NotifyPropertyChangedFor(nameof(IsCustomTimer))]
+        private int rotationModeIndex = 1;
 
         // 0 = daily at midnight, 1 = every 24 hours, 2 = custom.
         [ObservableProperty]
@@ -62,29 +72,40 @@ namespace Lively.UI.WinUI.ViewModels
         private double customMinutes;
 
         [ObservableProperty]
+        private TimeSpan dayTime = TimeSpan.FromHours(7);
+
+        [ObservableProperty]
+        private TimeSpan nightTime = TimeSpan.FromHours(19);
+
+        [ObservableProperty]
         private bool allowVideoInRotation;
 
         [ObservableProperty]
         private bool rotateLockScreenToo;
 
         [ObservableProperty]
-        private string lockScreenSummary = "Not set by Iceberg yet.";
-
-        [ObservableProperty]
         private string rotationSummary = string.Empty;
-
-        [ObservableProperty]
-        private string nextChangeSummary = string.Empty;
 
         [ObservableProperty]
         private string cacheSummary = "Calculating…";
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
         private string statusMessage = string.Empty;
 
-        public bool IsTimerMode => RotationModeIndex == 1;
+        public ObservableCollection<string> SiteNames { get; } = new();
 
-        public bool IsCustomTimer => TimerModeIndex == 2;
+        public ObservableCollection<string> CollectionNames { get; } = new();
+
+        public bool IsPredefinedSource => RotationSourceIndex == 1;
+
+        public bool IsTimeOfDayMode => RotationModeIndex == 1;
+
+        public bool IsTimerMode => RotationModeIndex == 2;
+
+        public bool IsCustomTimer => RotationModeIndex == 2 && TimerModeIndex == 2;
+
+        public bool HasStatusMessage => !string.IsNullOrWhiteSpace(StatusMessage);
 
         public async Task InitializeAsync()
         {
@@ -95,22 +116,43 @@ namespace Lively.UI.WinUI.ViewModels
             loading = true;
 
             ThemeIndex = (int)userSettings.Settings.ApplicationTheme;
-            StartWithWindows = userSettings.Settings.Startup;
-            ShowTrayIcon = userSettings.Settings.SysTrayIcon;
 
-            RotationEnabled = settings.RotationEnabled;
-            RotationModeIndex = settings.RotationMode == "timer" ? 1 : 0;
+            RotationModeIndex = !settings.RotationEnabled
+                ? 0
+                : settings.RotationMode == "timer" ? 2 : 1;
+
+            RotationSourceIndex = settings.RotationSource switch
+            {
+                "favourites" => 0,
+                "predefined" => 1,
+                _ => 2,
+            };
+
+            BuildSites();
+            var wantedSite = string.IsNullOrWhiteSpace(settings.RotationSourceId) ? 0 : siteIds.FindIndex(
+                id => string.Equals(id, settings.RotationSourceId, StringComparison.OrdinalIgnoreCase));
+            SiteIndex = Math.Max(0, wantedSite);
+
+            BuildCollections();
+            var wantedCollection = string.IsNullOrWhiteSpace(settings.RotationCollection) ? 0 : collectionIds.FindIndex(
+                id => string.Equals(id, settings.RotationCollection, StringComparison.OrdinalIgnoreCase));
+            CollectionIndex = Math.Max(0, wantedCollection);
+
             TimerModeIndex = settings.TimerMode switch
             {
                 "every24" => 1,
                 "custom" => 2,
                 _ => 0,
             };
+
             CustomHours = settings.CustomHours;
             CustomMinutes = settings.CustomMinutes;
+            DayTime = settings.DayChange;
+            NightTime = settings.NightChange;
             AllowVideoInRotation = settings.AllowVideoInRotation;
             RotateLockScreenToo = settings.RotateLockScreenToo;
-            UpdateLockScreenSummary();
+
+            EnsureAlwaysOn();
 
             loading = false;
 
@@ -118,7 +160,77 @@ namespace Lively.UI.WinUI.ViewModels
             await RefreshCacheSummaryAsync();
         }
 
-        partial void OnRotationEnabledChanged(bool value) => _ = SaveAsync();
+        /// <summary>
+        /// Starts with Windows and sits in the tray, with no switch to turn it
+        /// off. The switch was removed on purpose; this keeps older settings
+        /// files from quietly leaving the app behind.
+        /// </summary>
+        private void EnsureAlwaysOn()
+        {
+            if (userSettings.Settings.Startup && userSettings.Settings.SysTrayIcon)
+            {
+                return;
+            }
+
+            userSettings.Settings.Startup = true;
+            userSettings.Settings.SysTrayIcon = true;
+            userSettings.Save<SettingsModel>();
+
+            if (App.Services.GetService(typeof(ICommandsClient)) is ICommandsClient commands)
+            {
+                _ = commands.AutomationCommandAsync(new[] { "--startup", "true" });
+            }
+        }
+
+        private void BuildSites()
+        {
+            siteIds.Clear();
+            SiteNames.Clear();
+
+            foreach (var source in service.Registry.Enabled
+                         .Where(s => !s.RequiresApiKey || s.IsConfigured)
+                         .OrderBy(s => s.DisplayName, StringComparer.CurrentCulture))
+            {
+                siteIds.Add(source.Id);
+                SiteNames.Add(source.DisplayName);
+            }
+        }
+
+        private IWallpaperSource? CurrentSite =>
+            SiteIndex >= 0 && SiteIndex < siteIds.Count ? service.Registry.Get(siteIds[SiteIndex]) : null;
+
+        private void BuildCollections()
+        {
+            collectionIds.Clear();
+            collectionLabels.Clear();
+            CollectionNames.Clear();
+
+            var source = CurrentSite;
+            if (source is null)
+            {
+                return;
+            }
+
+            // The category group is the one that behaves like a collection. Some
+            // sites also have a content or purity group, which is not a genre.
+            var group = source.Filters.FirstOrDefault(f => f.Id.Equals("category", StringComparison.OrdinalIgnoreCase))
+                ?? source.Filters.FirstOrDefault();
+
+            if (group is null || group.Options.Count == 0)
+            {
+                collectionIds.Add(string.Empty);
+                collectionLabels.Add("All");
+                CollectionNames.Add("All");
+                return;
+            }
+
+            foreach (var option in group.Options)
+            {
+                collectionIds.Add(option.Id);
+                collectionLabels.Add(option.Label);
+                CollectionNames.Add(option.Label);
+            }
+        }
 
         partial void OnThemeIndexChanged(int value)
         {
@@ -133,29 +245,56 @@ namespace Lively.UI.WinUI.ViewModels
             }
         }
 
-        partial void OnStartWithWindowsChanged(bool value)
+        partial void OnRotationSourceIndexChanged(int value)
+        {
+            UpdateRotationSummary();
+            _ = SaveAsync();
+        }
+
+        partial void OnSiteIndexChanged(int value)
         {
             if (loading) return;
 
-            userSettings.Settings.Startup = value;
-            userSettings.Save<SettingsModel>();
+            BuildCollections();
+            CollectionIndex = 0;
+
+            UpdateRotationSummary();
+            _ = SaveAsync();
         }
 
-        partial void OnShowTrayIconChanged(bool value)
+        partial void OnCollectionIndexChanged(int value)
         {
-            if (loading) return;
-
-            userSettings.Settings.SysTrayIcon = value;
-            userSettings.Save<SettingsModel>();
+            UpdateRotationSummary();
+            _ = SaveAsync();
         }
 
-        partial void OnRotationModeIndexChanged(int value) => _ = SaveAsync();
+        partial void OnRotationModeIndexChanged(int value)
+        {
+            UpdateRotationSummary();
+            _ = SaveAsync();
+        }
 
-        partial void OnTimerModeIndexChanged(int value) => _ = SaveAsync();
+        partial void OnTimerModeIndexChanged(int value)
+        {
+            UpdateRotationSummary();
+            _ = SaveAsync();
+        }
 
         partial void OnCustomHoursChanged(double value) => _ = SaveAsync();
 
         partial void OnCustomMinutesChanged(double value) => _ = SaveAsync();
+
+        partial void OnDayTimeChanged(TimeSpan value)
+        {
+            UpdateRotationSummary();
+            _ = SaveAsync();
+        }
+
+        partial void OnNightTimeChanged(TimeSpan value)
+        {
+            UpdateRotationSummary();
+            _ = SaveAsync();
+        }
 
         partial void OnAllowVideoInRotationChanged(bool value) => _ = SaveAsync();
 
@@ -165,10 +304,23 @@ namespace Lively.UI.WinUI.ViewModels
         {
             if (loading) return;
 
+            var siteId = SiteIndex >= 0 && SiteIndex < siteIds.Count ? siteIds[SiteIndex] : null;
+            var collection = CollectionIndex >= 0 && CollectionIndex < collectionIds.Count
+                ? collectionIds[CollectionIndex]
+                : null;
+
             await service.Settings.UpdateAsync(s => s with
             {
-                RotationEnabled = RotationEnabled,
-                RotationMode = RotationModeIndex == 1 ? "timer" : "timeofday",
+                RotationEnabled = RotationModeIndex != 0,
+                RotationMode = RotationModeIndex == 2 ? "timer" : "timeofday",
+                RotationSource = RotationSourceIndex switch
+                {
+                    0 => "favourites",
+                    1 => "predefined",
+                    _ => "random",
+                },
+                RotationSourceId = siteId,
+                RotationCollection = collection,
                 TimerMode = TimerModeIndex switch
                 {
                     1 => "every24",
@@ -177,39 +329,56 @@ namespace Lively.UI.WinUI.ViewModels
                 },
                 CustomHours = (int)Math.Round(CustomHours),
                 CustomMinutes = (int)Math.Round(CustomMinutes),
+                DayHour = DayTime.Hours,
+                DayMinute = DayTime.Minutes,
+                NightHour = NightTime.Hours,
+                NightMinute = NightTime.Minutes,
                 AllowVideoInRotation = AllowVideoInRotation,
                 RotateLockScreenToo = RotateLockScreenToo,
             });
 
-            UpdateRotationSummary();
             StatusMessage = "Saved.";
         }
 
         private void UpdateRotationSummary()
         {
-            if (!RotationEnabled)
-            {
-                RotationSummary = "Rotation is off. Pick a wallpaper from Home whenever you like.";
-                NextChangeSummary = string.Empty;
-                return;
-            }
-
             if (RotationModeIndex == 0)
             {
-                RotationSummary = "Changes at 7 in the morning and 7 in the evening: something bright by day, something dark by night.";
-                NextChangeSummary = $"Next change {DescribeNextDayNightChange()}.";
+                RotationSummary = "Off. Nothing changes unless you pick a wallpaper yourself.";
                 return;
             }
 
-            RotationSummary = TimerModeIndex switch
-            {
-                1 => "Changes every 24 hours, counting from the last change.",
-                2 => $"Changes every {DescribeInterval()}.",
-                _ => "Changes every day at midnight.",
-            };
+            var schedule = RotationModeIndex == 1
+                ? $"twice a day, at {Clock(DayTime)} and {Clock(NightTime)}"
+                : TimerModeIndex switch
+                {
+                    1 => "every 24 hours",
+                    2 => $"every {DescribeInterval()}",
+                    _ => "every day at midnight",
+                };
 
-            NextChangeSummary = $"Next change {DescribeNextTimerChange()}.";
+            RotationSummary = RotationSourceIndex switch
+            {
+                0 => $"Your favourites, {schedule}.",
+                1 => PredefinedSummary(schedule),
+                _ => $"Every site you have switched on, {schedule}.",
+            };
         }
+
+        private string PredefinedSummary(string schedule)
+        {
+            var site = SiteIndex >= 0 && SiteIndex < SiteNames.Count ? SiteNames[SiteIndex] : "a site";
+            var collection = CollectionIndex >= 0 && CollectionIndex < collectionLabels.Count
+                ? collectionLabels[CollectionIndex]
+                : "All";
+
+            return collection.Equals("All", StringComparison.OrdinalIgnoreCase)
+                ? $"{site}, {schedule}."
+                : $"{site} · {collection}, {schedule}.";
+        }
+
+        private static string Clock(TimeSpan time) =>
+            DateTime.Today.Add(time).ToString("h:mm tt");
 
         private string DescribeInterval()
         {
@@ -218,43 +387,11 @@ namespace Lively.UI.WinUI.ViewModels
 
             if (hours == 0 && minutes == 0) return "0 minutes — that would never stop";
 
-            var parts = new System.Collections.Generic.List<string>();
+            var parts = new List<string>();
             if (hours > 0) parts.Add(hours == 1 ? "1 hour" : $"{hours} hours");
             if (minutes > 0) parts.Add(minutes == 1 ? "1 minute" : $"{minutes} minutes");
 
             return string.Join(" ", parts);
-        }
-
-        private string DescribeNextDayNightChange()
-        {
-            var now = DateTimeOffset.Now;
-            var today = new DateTimeOffset(now.Date, now.Offset);
-            var next = now < today.AddHours(7) ? today.AddHours(7)
-                : now < today.AddHours(19) ? today.AddHours(19)
-                : today.AddDays(1).AddHours(7);
-
-            return $"at {next:HH:mm}";
-        }
-
-        private string DescribeNextTimerChange()
-        {
-            var now = DateTimeOffset.Now;
-            var last = service.Current.LastRotationAt?.ToLocalTime();
-
-            if (last is null) return "the next time Iceberg checks (within a minute)";
-
-            DateTimeOffset next = TimerModeIndex switch
-            {
-                1 => last.Value.AddHours(24),
-                2 => last.Value.Add(service.Current.CustomInterval),
-                _ => new DateTimeOffset(last.Value.Date, last.Value.Offset).AddDays(1),
-            };
-
-            if (next <= now) return "the next time Iceberg checks (within a minute)";
-
-            var span = next - now;
-            if (span.TotalHours >= 1) return $"in {(int)span.TotalHours}h {span.Minutes}m";
-            return $"in {Math.Max(1, (int)span.TotalMinutes)} minutes";
         }
 
         [RelayCommand]
@@ -282,30 +419,6 @@ namespace Lively.UI.WinUI.ViewModels
             }
 
             await RefreshCacheSummaryAsync();
-        }
-
-        [RelayCommand]
-        private async Task UseLastAsLockScreenAsync()
-        {
-            StatusMessage = "Setting the lock screen…";
-
-            try
-            {
-                await service.SetLockScreenFromLastAsync();
-                StatusMessage = "Lock screen set.";
-                UpdateLockScreenSummary();
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = ex.Message;
-            }
-        }
-
-        private void UpdateLockScreenSummary()
-        {
-            LockScreenSummary = string.IsNullOrWhiteSpace(service.Current.LockScreenTitle)
-                ? "Not set by Iceberg yet. Open a wallpaper on Home and choose Set lock screen."
-                : $"Last set from {service.Current.LockScreenTitle}.";
         }
 
         [RelayCommand]

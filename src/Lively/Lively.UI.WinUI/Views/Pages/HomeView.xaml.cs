@@ -272,7 +272,11 @@ namespace Lively.UI.WinUI.Views.Pages
             }
         }
 
-        private void ClosePreview_Click(object sender, RoutedEventArgs e) => ViewModel.ClosePreview();
+        private void ClosePreview_Click(object sender, RoutedEventArgs e)
+        {
+            FullPreviewPlayer.MediaPlayer?.Pause();
+            ViewModel.ClosePreview();
+        }
 
         private void Tile_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
@@ -313,6 +317,30 @@ namespace Lively.UI.WinUI.Views.Pages
                     player.IsLoopingEnabled = true;
                     player.Play();
                 });
+        }
+
+        private void FullPreviewPlayer_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MediaPlayerElement element) return;
+
+            element.RegisterPropertyChangedCallback(
+                MediaPlayerElement.SourceProperty,
+                (s, _) =>
+                {
+                    if (s is not MediaPlayerElement playerElement) return;
+                    if (playerElement.MediaPlayer is not { } player) return;
+
+                    player.IsMuted = true;
+                    player.IsLoopingEnabled = true;
+                    player.Play();
+                });
+
+            if (element.MediaPlayer is { } existingPlayer)
+            {
+                existingPlayer.IsMuted = true;
+                existingPlayer.IsLoopingEnabled = true;
+                existingPlayer.Play();
+            }
         }
 
         private async void Favourite_Click(object sender, RoutedEventArgs e)

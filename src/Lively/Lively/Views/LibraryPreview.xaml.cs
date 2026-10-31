@@ -1,14 +1,18 @@
-﻿using Lively.Common.Helpers;
+using Lively.Common.Helpers;
 using Lively.Common.Helpers.Pinvoke;
 using Lively.Core;
 using Lively.Extensions;
+using Lively.Models.Enums;
 using Lively.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Lively.Views
 {
@@ -45,8 +49,32 @@ namespace Lively.Views
             viewModel.CapturePosition = PreviewBorder.GetAbsolutePlacement(true);
             viewModel.CaptureArea = PreviewBorder.GetElementPixelSize();
 
-            // Attach wp hwnd to border ui element.
-            this.SetProgramToFramework(viewModel.Wallpaper.Handle, PreviewBorder);
+            if (viewModel.Wallpaper.Handle != IntPtr.Zero)
+            {
+                // Attach wp hwnd to border ui element.
+                this.SetProgramToFramework(viewModel.Wallpaper.Handle, PreviewBorder);
+            }
+            else if (viewModel.Wallpaper.Category == WallpaperType.picture && File.Exists(viewModel.Wallpaper.Model.FilePath))
+            {
+                PreviewBorder.Visibility = Visibility.Visible;
+                try
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(viewModel.Wallpaper.Model.FilePath);
+                    bitmap.EndInit();
+                    PreviewBorder.Background = new ImageBrush(bitmap)
+                    {
+                        Stretch = Stretch.UniformToFill
+                    };
+                }
+                catch
+                {
+                    // Fall back to default border fill
+                }
+            }
+
             // Refocus window to allow keyboard input.
             this.Activate();
 
@@ -62,10 +90,13 @@ namespace Lively.Views
                 return;
             }
 
-            // Detach wallpaper window from this dialogue.
-            WindowUtil.TrySetParent(viewModel.Wallpaper.Handle, IntPtr.Zero);
-            // Move outside visibile region.
-            NativeMethods.SetWindowPos(viewModel.Wallpaper.Handle, 1, -9999, 0, 0, 0, 0x0002);
+            if (viewModel.Wallpaper.Handle != IntPtr.Zero)
+            {
+                // Detach wallpaper window from this dialogue.
+                WindowUtil.TrySetParent(viewModel.Wallpaper.Handle, IntPtr.Zero);
+                // Move outside visibile region.
+                NativeMethods.SetWindowPos(viewModel.Wallpaper.Handle, 1, -9999, 0, 0, 0, 0x0002);
+            }
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

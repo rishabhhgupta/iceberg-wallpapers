@@ -43,7 +43,7 @@ namespace Lively.Utility.Screensaver
             // If app is already running will forward the message to running instance via ipc, otherwise starts in exclusive screensaver mode.
             if (TryGetInnoInstalledAppPath(installerGuid, out string installedPath))
             {
-                Process.Start(Path.Combine(installedPath, "Lively.exe"), startArgs);
+                Process.Start(Path.Combine(installedPath, "Iceberg.exe"), startArgs);
             }
             else
             {

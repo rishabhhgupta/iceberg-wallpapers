@@ -20,6 +20,25 @@ public sealed record IcebergSettings
     /// <summary>"timeofday" (day/night) or "timer". One trigger, not two.</summary>
     public string RotationMode { get; init; } = "timeofday";
 
+    /// <summary>"random" (every enabled site), "predefined" (one site, one collection) or "favourites".</summary>
+    public string RotationSource { get; init; } = "random";
+
+    /// <summary>Which site feeds the rotation when <see cref="RotationSource"/> is predefined.</summary>
+    public string? RotationSourceId { get; init; }
+
+    /// <summary>The collection (a source filter value) used when the source is predefined.</summary>
+    public string? RotationCollection { get; init; }
+
+    /// <summary>Local hour the day wallpaper is applied, 0-23. Default 7am.</summary>
+    public int DayHour { get; init; } = 7;
+
+    public int DayMinute { get; init; }
+
+    /// <summary>Local hour the night wallpaper is applied, 0-23. Default 7pm.</summary>
+    public int NightHour { get; init; } = 19;
+
+    public int NightMinute { get; init; }
+
     /// <summary>When <see cref="RotationMode"/> is timer: "daily", "every24" or "custom".</summary>
     public string TimerMode { get; init; } = "daily";
 
@@ -74,6 +93,14 @@ public sealed record IcebergSettings
     public TimeSpan CustomInterval =>
         TimeSpan.FromMinutes(Math.Clamp(CustomHours, 0, 168) * 60 + Math.Clamp(CustomMinutes, 0, 59));
 
+    /// <summary>Local time the bright wallpaper is applied.</summary>
+    public TimeSpan DayChange => TimeSpan.FromHours(Math.Clamp(DayHour, 0, 23))
+        + TimeSpan.FromMinutes(Math.Clamp(DayMinute, 0, 59));
+
+    /// <summary>Local time the dark wallpaper is applied.</summary>
+    public TimeSpan NightChange => TimeSpan.FromHours(Math.Clamp(NightHour, 0, 23))
+        + TimeSpan.FromMinutes(Math.Clamp(NightMinute, 0, 59));
+
     /// <summary>Clamps hand-edited or older files into values the app can survive.</summary>
     public IcebergSettings Normalised() => this with
     {
@@ -83,6 +110,13 @@ public sealed record IcebergSettings
         CustomMinutes = Math.Clamp(CustomMinutes, 0, 59),
         RotationMode = OneOf(RotationMode, "timeofday", "timeofday", "timer"),
         TimerMode = OneOf(TimerMode, "daily", "daily", "every24", "custom"),
+        RotationSource = OneOf(RotationSource, "random", "random", "predefined", "favourites"),
+        RotationSourceId = string.IsNullOrWhiteSpace(RotationSourceId) ? null : RotationSourceId.Trim(),
+        RotationCollection = string.IsNullOrWhiteSpace(RotationCollection) ? null : RotationCollection.Trim(),
+        DayHour = Math.Clamp(DayHour, 0, 23),
+        DayMinute = Math.Clamp(DayMinute, 0, 59),
+        NightHour = Math.Clamp(NightHour, 0, 23),
+        NightMinute = Math.Clamp(NightMinute, 0, 59),
         MediaType = OneOf(MediaType, "any", "any", "photo", "illustration", "video"),
         Sort = OneOf(Sort, "featured", "featured", "top", "newest", "random"),
         Orientation = OneOf(Orientation, "landscape", "landscape", "portrait", "any"),

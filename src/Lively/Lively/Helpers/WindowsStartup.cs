@@ -1,4 +1,4 @@
-﻿using Lively.Common.Helpers;
+using Lively.Common.Helpers;
 using System;
 using System.IO;
 using System.Reflection;
@@ -38,7 +38,7 @@ namespace Lively.Helpers
             {
                 if (isStartWithWindows)
                 {
-                    key.SetValue(curAssembly.GetName().Name, "\"" + Path.ChangeExtension(curAssembly.Location, ".exe") + "\"");
+                    key.SetValue(curAssembly.GetName().Name, "\"" + Path.ChangeExtension(curAssembly.Location, ".exe") + "\" --startup true");
                 }
                 else
                 {

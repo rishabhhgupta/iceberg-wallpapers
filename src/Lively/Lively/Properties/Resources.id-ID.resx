@@ -136,22 +136,22 @@
     <value>Dokumentasi API &amp; Bantuan</value>
   </data>
   <data name="DescExplorerCrash" xml:space="preserve">
-    <value>Lively mengalami kesalahan fatal.
+    <value>Iceberg mengalami kesalahan fatal.
 
-Windows Explorer memulai ulang dua kali dalam 30 detik terakhir! Ini mungkin terjadi karena adanya tabrakan antara Lively dengan program kustomisasi sejenis atau windows. Untuk menghindari masalah lebih lanjut, semua wallpaper dihentikan.</value>
+Windows Explorer memulai ulang dua kali dalam 30 detik terakhir! Ini mungkin terjadi karena adanya tabrakan antara Iceberg dengan program kustomisasi sejenis atau windows. Untuk menghindari masalah lebih lanjut, semua wallpaper dihentikan.</value>
   </data>
   <data name="DescIncompatibleTaskbarTheme" xml:space="preserve">
     <value>Program yang tidak kompatibel ditemukan, tema taskbar dinonaktifkan</value>
   </data>
   <data name="Website.Description" xml:space="preserve">
-    <value>Halaman web resmi Lively Wallpaper</value>
+    <value>Halaman web resmi Iceberg Wallpaper</value>
   </data>
   <data name="DescOledScreensaverNotice" xml:space="preserve">
     <value>Kebanyakan layar LCD dan LED modern tidak bermasalah dari efek burn-in, maka wallpaper apapun bisa menjadi screensaver.
 
 Untuk layar OLED, Plasma atau CRT yang rentan terhadap burn-in, disarankan menggunakan wallpaper dengan gerakan teratur dan tema yang dominan gelap untuk mengurangi efek burn-in, namun fitur ini belum diuji dan efektivitasnya belum terjamin.
 
-Tujuan utama Lively adalah agar dapat lebih mem-personalisasi komputer Anda, risiko burn-in ditanggung sendiri!</value>
+Tujuan utama Iceberg adalah agar dapat lebih mem-personalisasi komputer Anda, risiko burn-in ditanggung sendiri!</value>
   </data>
   <data name="ReportBug.Description" xml:space="preserve">
     <value>Laporkan masalah dengan aplikasi</value>
@@ -180,10 +180,10 @@ Aplikasi berbahaya dapat menampung program jahat, virus, dan membahayakan sistem
 Lanjutkan hanya jika aplikasi ini berasal dari sumber tepercaya.</value>
   </data>
   <data name="MinimizedTray.Text" xml:space="preserve">
-    <value>Lively dikecilkan ke systemtray, klik kanan pada ikon Lively untuk melanjutkan.</value>
+    <value>Iceberg dikecilkan ke systemtray, klik kanan pada ikon Iceberg untuk melanjutkan.</value>
   </data>
   <data name="DescriptionPleaseRestartLively" xml:space="preserve">
-    <value>Mohon mulai ulang Lively agar pengaturan dapat diterapkan.</value>
+    <value>Mohon mulai ulang Iceberg agar pengaturan dapat diterapkan.</value>
   </data>
   <data name="DescriptionPleaseStop" xml:space="preserve">
     <value>Harap berhenti sebelum melanjutkan.</value>
@@ -204,7 +204,7 @@ Lanjutkan hanya jika aplikasi ini berasal dari sumber tepercaya.</value>
     <value>Masukkan URL halaman web untuk dimuat, tautan shader dari shadertoy.com dapat digunakan.</value>
   </data>
   <data name="DescriptionWelcomeWizard" xml:space="preserve">
-    <value>Panduan ini akan membantu Anda memulai pengaturan Lively</value>
+    <value>Panduan ini akan membantu Anda memulai pengaturan Iceberg</value>
   </data>
   <data name="DescriptionWindowsNCodecInstall" xml:space="preserve">
     <value>Versi Windows N/KN milikmu perlu mendownload codec tambahan untuk mendukung pemutaran video di wallpaper</value>
@@ -213,24 +213,24 @@ Lanjutkan hanya jika aplikasi ini berasal dari sumber tepercaya.</value>
     <value>Bantu developer dengan membelikan kopi</value>
   </data>
   <data name="DescSwitchBranchBetaWarning" xml:space="preserve">
-    <value>Anda akan mengubah ke Lively versi beta (pengembang).
+    <value>Anda akan mengubah ke Iceberg versi beta (pengembang).
 Pembaruan akan sering dilakukan dan mungkin memiliki bug!</value>
   </data>
   <data name="HideSysTray.Description" xml:space="preserve">
-    <value>Visibilitas ikon system-tray, Lively akan terus berjalan dengan ikon tersembunyi</value>
+    <value>Visibilitas ikon system-tray, Iceberg akan terus berjalan dengan ikon tersembunyi</value>
   </data>
   <data name="HideSysTray.Header" xml:space="preserve">
     <value>Ikon system-tray</value>
   </data>
   <data name="Language.Description" xml:space="preserve">
-    <value>Lively akan dimulai ulang untuk menerapkan bahasa baru.</value>
+    <value>Iceberg akan dimulai ulang untuk menerapkan bahasa baru.</value>
   </data>
   <data name="Language.Header" xml:space="preserve">
     <value>Bahasa</value>
   </data>
   <data name="LivelyExceptionAppUpdateFail" xml:space="preserve">
     <value>Gagal untuk mendapatkan update; coba download installer dari:
-https://github.com/rocksdanister/lively/releases
+https://github.com/rishabhhgupta/iceberg-wallpapers/releases
 </value>
   </data>
   <data name="LivelyExceptionDamagedZipFile" xml:space="preserve">
@@ -240,40 +240,40 @@ https://github.com/rocksdanister/lively/releases
     <value>Oops... Sepertinya terjadi masalah :(
 Untuk lebih memahami kesalahan ini dan memperbaiki masalah, bagikan file log dengan pengembang.
 Petunjuk untuk berbagi file log:
-https://github.com/rocksdanister/lively/wiki</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionHighContrastMode" xml:space="preserve">
-    <value>Lively tidak dapat berfungsi dengan Mode Kontras Tinggi Windows!
+    <value>Iceberg tidak dapat berfungsi dengan Mode Kontras Tinggi Windows!
 Matikan ModeKontras Tinggi dan mulai ulang.</value>
   </data>
   <data name="LivelyExceptionMediaPlayback" xml:space="preserve">
     <value>Gagal memutar media:(
-Silakan coba untuk mengganti pemutar video di pengaturan Lively.
+Silakan coba untuk mengganti pemutar video di pengaturan Iceberg.
 
 Untuk mengerti lebih lanjut tentang kesalahan ini dan memperbaikinya, bagikan file log kepada pengembang. 
 Instruksi untuk membagikan file log:
-https://github.com/rocksdanister/lively/wiki</value>
+https://github.com/rishabhhgupta/iceberg-wallpapers</value>
   </data>
   <data name="LivelyExceptionNotLivelyZip" xml:space="preserve">
-    <value>Bukan file wallpaper untuk Lively.</value>
+    <value>Bukan file wallpaper untuk Iceberg.</value>
   </data>
   <data name="LivelyExceptionSafeModeStart" xml:space="preserve">
-    <value>Lively tidak ditutup dengan benar, akan dimulai dalam mode aman.
+    <value>Iceberg tidak ditutup dengan benar, akan dimulai dalam mode aman.
 Apakah Anda ingin memulihkan wallpaper yang berjalan sebelumnya?</value>
   </data>
   <data name="LivelyExceptionWorkerWSetupFail" xml:space="preserve">
-    <value>Sepertinya beberapa pengaturan perlu dilakukan agar Lively dapat digunakan:
+    <value>Sepertinya beberapa pengaturan perlu dilakukan agar Iceberg dapat digunakan:
 1. Tekan tombol windows
 2. Cari "Adjust the appearance and performance of Windows"
 3. Pada tab Visual Effects aktifkan "Animate controls and elements inside Windows"
 4. Klik "Apply" lalu "OK"
 
 Untuk Windows 7, pilih "Adjust for best appearance" dan klik "Apply".
-Jika masih tidak berfungsi, tutup dan mulai ulang Lively/Windows.
+Jika masih tidak berfungsi, tutup dan mulai ulang Iceberg/Windows.
 (Tidak berfungsi untuk beberapa Windows 10 Insider)</value>
   </data>
   <data name="Startup.Description" xml:space="preserve">
-    <value>Lively harus berjalan di latar belakang untuk memutar wallpaper.</value>
+    <value>Iceberg harus berjalan di latar belakang untuk memutar wallpaper.</value>
   </data>
   <data name="Startup.Header" xml:space="preserve">
     <value>Memulai aplikasi saat komputer dinyalakan</value>
@@ -354,10 +354,10 @@ Jika masih tidak berfungsi, tutup dan mulai ulang Lively/Windows.
     <value>Keluar</value>
   </data>
   <data name="ExportWallpaperZip.Text" xml:space="preserve">
-    <value>Ekspor Llively .zip</value>
+    <value>Ekspor Liceberg .zip</value>
   </data>
   <data name="TextFeatureMissing" xml:space="preserve">
-    <value>Beberapa fitur tidak tersedia di versi Lively ini</value>
+    <value>Beberapa fitur tidak tersedia di versi Iceberg ini</value>
   </data>
   <data name="TextFileNotFound" xml:space="preserve">
     <value>File tidak ditemukan</value>
@@ -372,7 +372,7 @@ Jika masih tidak berfungsi, tutup dan mulai ulang Lively/Windows.
     <value>PERGI</value>
   </data>
   <data name="TextHelpTranslate.Title" xml:space="preserve">
-    <value>Bantu menerjemahkan Lively.</value>
+    <value>Bantu menerjemahkan Iceberg.</value>
   </data>
   <data name="TextHours" xml:space="preserve">
     <value>jam</value>
@@ -426,7 +426,7 @@ Jika masih tidak berfungsi, tutup dan mulai ulang Lively/Windows.
     <value>Online</value>
   </data>
   <data name="TextOpenLively" xml:space="preserve">
-    <value>Buka Lively</value>
+    <value>Buka Iceberg</value>
   </data>
   <data name="PauseAlgorithmTypeAllProcess.Content" xml:space="preserve">
     <value>Semua Proses</value>
@@ -489,7 +489,7 @@ Jika masih tidak berfungsi, tutup dan mulai ulang Lively/Windows.
     <value>Berhenti</value>
   </data>
   <data name="StoreReview.Content" xml:space="preserve">
-    <value>Suka Lively ? Tinggalkan sebuah ulasan :)</value>
+    <value>Suka Iceberg ? Tinggalkan sebuah ulasan :)</value>
   </data>
   <data name="TextSupport.Content" xml:space="preserve">
     <value>Dukungan</value>
@@ -615,7 +615,7 @@ Jika masih tidak berfungsi, tutup dan mulai ulang Lively/Windows.
     <value>Jeda wallpaper saat menjalankan aplikasi berikut</value>
   </data>
   <data name="TipAppTheme" xml:space="preserve">
-    <value>Lively mengadaptasi tema pada sistem, untuk mengubah penampilan pergi ke</value>
+    <value>Iceberg mengadaptasi tema pada sistem, untuk mengubah penampilan pergi ke</value>
   </data>
   <data name="BatteryPower.Description" xml:space="preserve">
     <value>(Hanya untuk sistem yang beroperasi dengan baterai) Ganti pemutaran jika adaptor laptop terputus.</value>
@@ -713,7 +713,7 @@ Semua: Jeda wallpaper untuk semua layar jika ada aplikasi fullscreen/sedang difo
     <value>Aplikasi Fullscreen</value>
   </data>
   <data name="TitleAppName" xml:space="preserve">
-    <value>Latar Belakang Lively</value>
+    <value>Latar Belakang Iceberg</value>
   </data>
   <data name="AppRules.Header" xml:space="preserve">
     <value>Peraturan Aplikasi</value>
@@ -776,7 +776,7 @@ Semua: Jeda wallpaper untuk semua layar jika ada aplikasi fullscreen/sedang difo
     <value>Pustaka</value>
   </data>
   <data name="TitleLivelySetup" xml:space="preserve">
-    <value>Pengaturan Lively</value>
+    <value>Pengaturan Iceberg</value>
   </data>
   <data name="TitleLocation" xml:space="preserve">
     <value>Lokasi</value>
@@ -1251,7 +1251,7 @@ Semua: Jeda wallpaper untuk semua layar jika ada aplikasi fullscreen/sedang difo
     <value>Sama dengan Sistem</value>
   </data>
   <data name="InfoSettingsRestartRequest.Message" xml:space="preserve">
-    <value>Mohon mulai ulang Lively agar pengaturan dapat diterapkan.</value>
+    <value>Mohon mulai ulang Iceberg agar pengaturan dapat diterapkan.</value>
   </data>
   <data name="ScreensaverLockOnResume.Header" xml:space="preserve">
     <value>Saat dilanjutkan, tampilkan layar log in dahulu</value>

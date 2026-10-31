@@ -1,4 +1,4 @@
-﻿using Lively.Common.Helpers;
+using Lively.Common.Helpers;
 using Lively.Common.Helpers.Pinvoke;
 using Lively.Core;
 using System;
@@ -51,6 +51,11 @@ namespace Lively.Extensions
         /// <param name="element"></param>
         public static void SetProgramToFramework(this Window window, IntPtr pgmHandle, FrameworkElement element)
         {
+            if (pgmHandle == IntPtr.Zero)
+            {
+                return;
+            }
+
             IntPtr previewHwnd = new WindowInteropHelper(window).Handle;
             NativeMethods.RECT prct = new NativeMethods.RECT();
             var reviewPanel = GetAbsolutePlacement(element, true);
