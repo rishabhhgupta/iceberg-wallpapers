@@ -115,6 +115,8 @@ $signing = if ($Sign) { 'true' } else { 'false' }
     -c $Configuration `
     -p:Platform=$Platform `
     -p:RuntimeIdentifiers=$Runtime `
+    -p:RuntimeIdentifier=$Runtime `
+    -p:SelfContained=true `
     -p:IsMsixRelease=true `
     -p:GenerateAppxPackageOnBuild=true `
     -p:AppxBundle=Never `
@@ -123,7 +125,7 @@ $signing = if ($Sign) { 'true' } else { 'false' }
 if ($LASTEXITCODE -ne 0) { throw "MSIX build failed with exit code $LASTEXITCODE" }
 
 Write-Step "Collecting package"
-$appPackages = Join-Path $livelyDir "Lively.UI.WinUI\bin\$Platform\$Configuration\net9.0-windows10.0.22621.0\AppPackages"
+$appPackages = Join-Path $livelyDir "Lively.UI.WinUI\bin\$Platform\$Configuration\net9.0-windows10.0.22621.0"
 $msix = Get-ChildItem $appPackages -Recurse -Filter *.msix -ErrorAction SilentlyContinue |
         Where-Object { $_.Name -notlike 'Microsoft.WindowsAppRuntime*' } |
         Sort-Object LastWriteTime -Descending |
