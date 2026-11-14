@@ -34,7 +34,6 @@ namespace Lively.UI.WinUI
         private readonly ICommandsClient commands;
         private readonly IMainNavigator navigator;
         private readonly IResourceService i18n;
-        private bool fitted;
         private bool sessionEnding;
         private SubclassProc? closeGuard;
 
@@ -77,8 +76,8 @@ namespace Lively.UI.WinUI
 
             ApplyTheme();
 
-            // A window taller than the screen is worse than a smaller one.
-            Root.Loaded += (_, _) => FitToScreen();
+            // Open filling the screen. Wait for the first real activation, so a
+            // launch that must stay in the tray never sizes a window nobody sees.
             this.Activated += MainWindow_FirstActivated;
 
             // Ref: https://learn.microsoft.com/en-us/windows/apps/develop/title-bar?tabs=wasdk
@@ -111,43 +110,16 @@ namespace Lively.UI.WinUI
 
         private void MainWindow_FirstActivated(object sender, WindowActivatedEventArgs args)
         {
+            // A deactivated event can arrive while the window is still being
+            // created. Only maximize once the window really has the focus.
+            if (args.WindowActivationState == WindowActivationState.Deactivated)
+                return;
+
             this.Activated -= MainWindow_FirstActivated;
-            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            if (this.AppWindow.Presenter is OverlappedPresenter presenter)
             {
                 presenter.Maximize();
             }
-            else
-            {
-                FitToScreen();
-            }
-        }
-
-        private void FitToScreen()
-        {
-            if (fitted || contentFrame.XamlRoot is not { } root)
-            {
-                return;
-            }
-
-            fitted = true;
-            this.Activated -= MainWindow_FirstActivated;
-
-            var scale = root.RasterizationScale <= 0 ? 1 : root.RasterizationScale;
-            var area = Microsoft.UI.Windowing.DisplayArea
-                .GetFromWindowId(this.AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Primary)
-                .WorkArea;
-
-            var maxWidth = (area.Width / scale) - 32;
-            var maxHeight = (area.Height / scale) - 32;
-
-            if (this.Width <= maxWidth && this.Height <= maxHeight)
-            {
-                return;
-            }
-
-            this.Width = Math.Max(Math.Min(this.Width, maxWidth), this.MinWidth);
-            this.Height = Math.Max(Math.Min(this.Height, maxHeight), this.MinHeight);
-            this.CenterOnScreen();
         }
 
         private void DesktopCore_WallpaperChanged(object sender, EventArgs e)

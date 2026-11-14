@@ -211,7 +211,7 @@ namespace Lively.Models
             RemoteDesktopPause = AppRules.pause;
             PowerSaveModePause = AppRules.ignore;
             LockScreenAutoWallpaper = false;
-            DesktopAutoWallpaper = false;
+            DesktopAutoWallpaper = true;
             SystemTaskbarTheme = TaskbarTheme.none;
             ScreensaverIdleDelay = ScreensaverIdleTime.none;
             ScreensaverOledWarning = false;

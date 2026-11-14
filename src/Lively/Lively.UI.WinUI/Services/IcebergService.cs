@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Lively.Common;
 using Lively.Common.Helpers.Storage;
 using Lively.Common.Services;
 using Lively.Discovery;
@@ -20,7 +21,6 @@ using Lively.Imaging.Processing;
 using Lively.Models;
 using Lively.Models.Enums;
 using Lively.Sources;
-using Lively.UI.Shared.ViewModels;
 
 namespace Lively.UI.WinUI.Services
 {
@@ -36,7 +36,6 @@ namespace Lively.UI.WinUI.Services
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        private readonly LibraryViewModel libraryVm;
         private readonly IDesktopCoreClient desktopCore;
         private readonly IUserSettingsClient userSettings;
         private readonly IDisplayManagerClient displayManager;
@@ -47,14 +46,15 @@ namespace Lively.UI.WinUI.Services
 
         private CancellationTokenSource rotationCts;
         private DateTimeOffset lastAtmosphereRefresh = DateTimeOffset.MinValue;
+        private WallpaperItem? preloadedItem;
+        private byte[]? preloadedBytes;
+        private readonly SemaphoreSlim preloadLock = new(1, 1);
 
         public IcebergService(
-            LibraryViewModel libraryVm,
             IDesktopCoreClient desktopCore,
             IUserSettingsClient userSettings,
             IDisplayManagerClient displayManager)
         {
-            this.libraryVm = libraryVm ?? throw new ArgumentNullException(nameof(libraryVm));
             this.desktopCore = desktopCore ?? throw new ArgumentNullException(nameof(desktopCore));
             this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
             this.displayManager = displayManager ?? throw new ArgumentNullException(nameof(displayManager));
@@ -82,7 +82,7 @@ namespace Lively.UI.WinUI.Services
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Iceberg Wallpaper");
 
-        public static string LibraryDirectory => Path.Combine(DataDirectory, "library");
+        public static string LibraryDirectory => Constants.CommonPaths.IcebergLibraryDir;
 
         public IcebergSettingsStore Settings { get; }
 
@@ -167,11 +167,14 @@ namespace Lively.UI.WinUI.Services
             return Task.FromResult(snapshot);
         }
 
-        public async Task ApplyAsync(WallpaperItem item, CancellationToken cancellationToken = default)
+        public Task ApplyAsync(WallpaperItem item, CancellationToken cancellationToken = default) =>
+            ApplyAsync(item, null, cancellationToken);
+
+        public async Task ApplyAsync(WallpaperItem item, byte[]? preloadedBytes, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(item);
 
-            var bytes = await Images.GetAsync(item.FullUrl, cancellationToken).ConfigureAwait(false);
+            var bytes = preloadedBytes ?? await Images.GetAsync(item.FullUrl, cancellationToken).ConfigureAwait(false);
             if (bytes is null)
             {
                 throw new InvalidOperationException("That picture could not be downloaded.");
@@ -201,6 +204,19 @@ namespace Lively.UI.WinUI.Services
             Logger.Info($"Iceberg: asking the core to set '{model.LivelyInfoFolderPath}'");
             await desktopCore.SetWallpaper(model, monitor).ConfigureAwait(false);
 
+            try
+            {
+                var poster = package.PosterPath;
+                if (!string.IsNullOrWhiteSpace(poster) && File.Exists(poster))
+                {
+                    _ = SystemWallpaperService.SetAsync(poster);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Failed to update system-wide desktop wallpaper: {ex.Message}");
+            }
+
             LastAppliedItem = item;
 
             await Settings.UpdateAsync(s => s with
@@ -211,6 +227,7 @@ namespace Lively.UI.WinUI.Services
             }, cancellationToken).ConfigureAwait(false);
 
             Planner.MarkUsed(item.Key);
+            _ = PreloadNextAsync(CancellationToken.None);
         }
 
         /// <summary>
@@ -336,23 +353,67 @@ namespace Lively.UI.WinUI.Services
         };
 
         /// <summary>Picks the next wallpaper from the chosen rotation source.</summary>
+        /// <summary>Picks the next wallpaper from the chosen rotation source.</summary>
         public async Task<WallpaperItem> ApplyNextAsync(CancellationToken cancellationToken = default)
         {
             var settings = Settings.Current;
+
+            // Fast path: if a wallpaper was preloaded ahead of time, apply it instantly!
+            if (preloadedItem is { } preloaded && preloadedBytes is { } pBytes && preloaded.Key != LastAppliedItem?.Key)
+            {
+                preloadedItem = null;
+                preloadedBytes = null;
+                try
+                {
+                    await ApplyAsync(preloaded, pBytes, cancellationToken).ConfigureAwait(false);
+                    return preloaded;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn($"Failed to apply preloaded wallpaper: {ex.Message}, falling back to live pick.");
+                }
+            }
 
             if (settings.RotationSource == "favourites")
             {
                 return await ApplyFavouriteAsync(settings, cancellationToken).ConfigureAwait(false);
             }
 
-            // The phase of the day decides which words are searched for, so a
-            // daytime wallpaper is bright and a night one is dark.
+            var ordered = await PickNextCandidatesAsync(settings, cancellationToken).ConfigureAwait(false);
+            if (ordered.Count == 0)
+            {
+                throw new InvalidOperationException("No wallpapers came back. Check your connection.");
+            }
+
+            Exception? lastError = null;
+            foreach (var item in ordered.Take(3))
+            {
+                try
+                {
+                    await ApplyAsync(item, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    return item;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                }
+            }
+
+            throw lastError ?? new InvalidOperationException("No wallpapers came back. Check your connection.");
+        }
+
+        private async Task<List<WallpaperItem>> PickNextCandidatesAsync(
+            IcebergSettings settings,
+            CancellationToken cancellationToken)
+        {
             var hint = settings.RotationMode == "timeofday" && Atmosphere.Current is { } a
                 ? PhaseHint(a)
                 : null;
 
-            // Filters only change what Home shows. The rotation has its own
-            // source, so the browsing filters are deliberately not used here.
             WallpaperMediaType? media = null;
             if (settings.AllowVideoInRotation && Random.Shared.NextDouble() < 0.2)
             {
@@ -371,7 +432,6 @@ namespace Lively.UI.WinUI.Services
             };
 
             IWallpaperSource? onlySource = null;
-
             if (settings.RotationSource == "predefined")
             {
                 onlySource = Registry.Get(settings.RotationSourceId ?? string.Empty)
@@ -388,26 +448,17 @@ namespace Lively.UI.WinUI.Services
             }
 
             var page = await FetchForRotationAsync(query, onlySource, cancellationToken).ConfigureAwait(false);
-
-            // Fall back to a plain page when a themed search returns nothing.
             if (page.Items.Count == 0 && hint is not null)
             {
                 page = await FetchForRotationAsync(query with { Text = null, Page = 1 }, onlySource, cancellationToken)
                     .ConfigureAwait(false);
             }
 
-            if (page.Items.Count == 0)
-            {
-                throw new InvalidOperationException(
-                    page.Failure ?? "No wallpapers came back. Check your connection.");
-            }
+            if (page.Items.Count == 0) return new List<WallpaperItem>();
 
             var candidates = page.Items.Select(i => new WallpaperCandidate(i.Key, i.SourceId)).ToList();
             var chosen = Planner.Pick(candidates);
 
-            // Try the planner's choice first, then a couple of others. A single
-            // picture site can refuse one file while the rest are fine, and a
-            // rotation that silently does nothing is worse than a slower pick.
             var ordered = new List<WallpaperItem>();
             if (page.Items.FirstOrDefault(i => i.Key == chosen?.Id) is { } first)
             {
@@ -418,25 +469,74 @@ namespace Lively.UI.WinUI.Services
                 .Where(i => ordered.All(o => o.Key != i.Key))
                 .OrderBy(_ => Random.Shared.Next()));
 
-            Exception? lastError = null;
-            foreach (var item in ordered.Take(3))
+            return ordered;
+        }
+
+        public async Task PreloadNextAsync(CancellationToken cancellationToken = default)
+        {
+            var settings = Settings.Current;
+            if (!settings.RotationEnabled) return;
+
+            if (!await preloadLock.WaitAsync(0, cancellationToken).ConfigureAwait(false))
             {
-                try
-                {
-                    await ApplyAsync(item, cancellationToken).ConfigureAwait(false);
-                    return item;
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    lastError = ex;
-                }
+                return;
             }
 
-            throw lastError ?? new InvalidOperationException("No wallpapers came back. Check your connection.");
+            try
+            {
+                if (settings.RotationSource == "favourites")
+                {
+                    var favs = Favourites.Items.Where(f => !string.IsNullOrWhiteSpace(f.FullUrl)).ToList();
+                    if (favs.Count > 0)
+                    {
+                        var candidates = favs.Select(f => new WallpaperCandidate(f.Id, f.SourceId)).ToList();
+                        var picked = Planner.Pick(candidates);
+                        var favItem = favs.FirstOrDefault(f => f.Id == picked?.Id) ?? favs[0];
+                        if ($"{favItem.SourceId}:{favItem.Id}" != LastAppliedItem?.Key)
+                        {
+                            var full = new WallpaperItem
+                            {
+                                Id = favItem.Id,
+                                SourceId = favItem.SourceId,
+                                FullUrl = favItem.FullUrl,
+                                ThumbnailUrl = favItem.ThumbnailUrl,
+                                Title = favItem.Title,
+                                Category = favItem.Category,
+                                PageUrl = favItem.PageUrl,
+                            };
+                            var bytes = await Images.GetAsync(full.FullUrl, cancellationToken).ConfigureAwait(false);
+                            if (bytes != null && bytes.Length > 0)
+                            {
+                                preloadedItem = full;
+                                preloadedBytes = bytes;
+                                Logger.Info($"Preloaded favourite for next rotation: {full.Key}");
+                            }
+                        }
+                    }
+                    return;
+                }
+
+                var ordered = await PickNextCandidatesAsync(settings, cancellationToken).ConfigureAwait(false);
+                foreach (var item in ordered.Where(i => i.Key != LastAppliedItem?.Key).Take(2))
+                {
+                    var bytes = await Images.GetAsync(item.FullUrl, cancellationToken).ConfigureAwait(false);
+                    if (bytes is not null && bytes.Length > 0)
+                    {
+                        preloadedItem = item;
+                        preloadedBytes = bytes;
+                        Logger.Info($"Preloaded next rotation wallpaper: {item.Key} ({bytes.Length} bytes)");
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Preload next wallpaper failed: {ex.Message}");
+            }
+            finally
+            {
+                preloadLock.Release();
+            }
         }
 
         /// <summary>
@@ -568,12 +668,27 @@ namespace Lively.UI.WinUI.Services
         {
             try
             {
-                // Check once at start-up instead of waiting a whole minute: this
-                // is what catches a sunrise or sunset that happened while the PC
-                // was off. A short pause lets the saved wallpaper finish restoring
-                // first, so the rotation replaces a picture rather than racing it.
-                await Task.Delay(TimeSpan.FromSeconds(8), cancellationToken).ConfigureAwait(false);
-                await RotationTickAsync(cancellationToken).ConfigureAwait(false);
+                // A short pause gives the desktop layer a moment to settle after log-in.
+                await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken).ConfigureAwait(false);
+
+                var settings = Settings.Current;
+                if (settings.RotationEnabled)
+                {
+                    var now = DateTimeOffset.Now;
+                    var last = settings.LastRotationAt?.ToLocalTime() ?? DateTimeOffset.MinValue;
+
+                    if (IsRotationDue(settings, last, now))
+                    {
+                        Logger.Info("Rotation is due on start-up: applying next wallpaper.");
+                        await RotationTickAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        Logger.Info("Rotation not due on start-up: keeping current wallpaper and preloading next in background.");
+                        _ = PreloadNextAsync(cancellationToken);
+                    }
+                }
+
                 await AtmosphereTickAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -764,7 +879,7 @@ namespace Lively.UI.WinUI.Services
         /// directly and hand the folder to the core. That keeps applying instant and
         /// free of extra dependencies.
         /// </remarks>
-        private async Task<(string Folder, string File)> EnsurePackageAsync(
+        private async Task<(string Folder, string File, string PosterPath)> EnsurePackageAsync(
             WallpaperItem item,
             byte[] bytes,
             CancellationToken cancellationToken)
@@ -790,11 +905,40 @@ namespace Lively.UI.WinUI.Services
                 && File.Exists(infoPath)
                 && File.Exists(imagePath))
             {
-                return (folder, imagePath);
+                var existingPoster = still ? imagePath : (Directory.EnumerateFiles(folder, "thumbnail.*").FirstOrDefault() ?? imagePath);
+                return (folder, imagePath, existingPoster);
             }
 
             Directory.CreateDirectory(folder);
             await File.WriteAllBytesAsync(imagePath, bytes, cancellationToken).ConfigureAwait(false);
+
+            string? thumbFileName = null;
+            if (still)
+            {
+                thumbFileName = fileName;
+            }
+            else
+            {
+                try
+                {
+                    var thumbUrl = item.Thumb;
+                    if (!string.IsNullOrWhiteSpace(thumbUrl) && thumbUrl != item.FullUrl)
+                    {
+                        var thumbBytes = await Images.GetAsync(thumbUrl, cancellationToken).ConfigureAwait(false);
+                        if (thumbBytes != null && thumbBytes.Length > 0)
+                        {
+                            var thumbExt = ExtensionFor(thumbBytes, WallpaperMediaType.Photo);
+                            thumbFileName = "thumbnail" + thumbExt;
+                            var thumbPath = Path.Combine(folder, thumbFileName);
+                            await File.WriteAllBytesAsync(thumbPath, thumbBytes, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn($"Failed to save poster thumbnail for animated wallpaper: {ex.Message}");
+                }
+            }
 
             var info = new LivelyInfoModel
             {
@@ -802,8 +946,8 @@ namespace Lively.UI.WinUI.Services
                 Type = type,
                 FileName = fileName,
                 IsAbsolutePath = false,
-                Thumbnail = still ? fileName : null,
-                Preview = still ? fileName : null,
+                Thumbnail = thumbFileName ?? (still ? fileName : null),
+                Preview = thumbFileName ?? (still ? fileName : null),
                 Author = item.Author ?? item.SourceId,
                 Desc = item.SourceId,
             };
@@ -822,7 +966,9 @@ namespace Lively.UI.WinUI.Services
             }
 
             await SaveImportedMapAsync(cancellationToken).ConfigureAwait(false);
-            return (folder, imagePath);
+
+            var poster = thumbFileName != null ? Path.Combine(folder, thumbFileName) : imagePath;
+            return (folder, imagePath, poster);
         }
 
         private static string Hash(string value) =>

@@ -390,5 +390,23 @@
   <ItemGroup>
     <Resource Remove="UserControls\DisplaySelector.xaml" />
   </ItemGroup>
+  <Target Name="CopyPackageArtworkForLooseLayout" AfterTargets="Build">
+    <ItemGroup>
+      <PackageArtwork Include="Assets\Square150x150Logo.scale-200.png" />
+      <PackageArtwork Include="Assets\Square44x44Logo.scale-200.png" />
+      <PackageArtwork Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
+      <PackageArtwork Include="Assets\Wide310x150Logo.scale-200.png" />
+      <PackageArtwork Include="Assets\StoreLogo.scale-200.png" />
+      <PackageArtwork Include="Assets\SplashScreen.scale-200.png" />
+      <PackageArtwork Include="Assets\LockScreenLogo.scale-200.png" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PackageArtwork)" DestinationFolder="$(OutDir)Assets" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="Assets\Square150x150Logo.scale-200.png" DestinationFiles="$(OutDir)Assets\Square150x150Logo.png" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="Assets\Square44x44Logo.scale-200.png" DestinationFiles="$(OutDir)Assets\Square44x44Logo.png" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="Assets\Wide310x150Logo.scale-200.png" DestinationFiles="$(OutDir)Assets\Wide310x150Logo.png" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="Assets\StoreLogo.scale-200.png" DestinationFiles="$(OutDir)Assets\StoreLogo.png" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="Assets\SplashScreen.scale-200.png" DestinationFiles="$(OutDir)Assets\SplashScreen.png" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="Assets\LockScreenLogo.scale-200.png" DestinationFiles="$(OutDir)Assets\LockScreenLogo.png" SkipUnchangedFiles="true" />
+  </Target>
   <Import Project="..\Lively.UI.Shared\Lively.UI.Shared.projitems" Label="Shared" />
 </Project>

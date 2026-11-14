@@ -27,6 +27,19 @@ namespace Lively.Common
             public static string CefRootCacheDir { get; } = Path.Combine(Path.GetTempPath(), "Iceberg Wallpaper", "CEF");
             public static string TokensPath { get; } = Path.Combine(AppDataDir, "Tokens.dat");
             public static string ScreenshotDir { get; } = Path.Combine(AppDataDir, "Screenshots");
+            /// <summary>
+            /// Wallpapers downloaded by Iceberg's own rotation feature. These are
+            /// separate from the user's chosen wallpaper directory.
+            /// </summary>
+            public static string IcebergLibraryDir { get; } = Path.Combine(AppDataDir, "library");
+
+            /// <summary>
+            /// Wallpapers installed by the original Lively app. Iceberg reads this
+            /// folder so people upgrading from Lively keep their live wallpapers.
+            /// </summary>
+            public static string LegacyLivelyLibraryDir { get; } = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Lively Wallpaper", "Library", "wallpapers");
         }
 
         /// <summary>

@@ -31,6 +31,7 @@
         <customconverters:BooleanToVisibilityConverter x:Key="VisibilityConverter" />
         <customconverters:ListViewSelectionModeStringToEnumConverter x:Key="ListViewSelectionModeStringToEnumConverter" />
         <customconverters:FloatToBoolConverter x:Key="ProgressRingIsIndeterminateConverter" />
+        <customconverters:ImagePathToBitmapImageConverter x:Key="LibraryImageConverter" DecodePixelWidth="544" />
         <LinearGradientBrush x:Key="GridGradientBrush" StartPoint="0.5,0.25" EndPoint="0.5,1">
             <GradientStop Offset="0" Color="#00000000" />
             <GradientStop Offset="1" Color="{ThemeResource SystemAltHighColor}" />
@@ -203,7 +204,7 @@
                         <Image
                             Grid.RowSpan="2"
                             Grid.ColumnSpan="2"
-                            Source="{Binding ImagePath}"
+                            Source="{Binding ImagePath, Converter={StaticResource LibraryImageConverter}}"
                             Stretch="UniformToFill" />
 
                         <Rectangle

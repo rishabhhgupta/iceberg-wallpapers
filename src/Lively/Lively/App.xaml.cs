@@ -33,6 +33,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Windows.ApplicationModel;
+using Windows.ApplicationModel.Activation;
 using static Lively.Common.CommandlineArgs;
 
 namespace Lively
@@ -148,7 +150,7 @@ namespace Lively
                         ReleaseMutex();
                         //The app is being queried if it can close for an update.
                         _ = NativeMethods.RegisterApplicationRestart(
-                            null,
+                            "--startup true",
                             (int)NativeMethods.RestartFlags.RESTART_NO_CRASH |
                             (int)NativeMethods.RestartFlags.RESTART_NO_HANG |
                             (int)NativeMethods.RestartFlags.RESTART_NO_REBOOT);
@@ -182,11 +184,13 @@ namespace Lively
             }
 
             // First run setup wizard show. A log-in start must never put a window
-            // on screen: Windows gives a packaged start-up task no argument we
-            // can read, so compare the process start with the log-on time.
-            var isStartupLaunch = commandArgs.Any(a => a.Equals("--startup", StringComparison.OrdinalIgnoreCase) || a.Equals("--minimized", StringComparison.OrdinalIgnoreCase));
-            var isPackagedLogon = PackageUtil.IsRunningAsPackaged && StartedAtLogon();
-            var showWindowOnStart = userSettings.Settings.IsFirstRun || (!isStartupLaunch && !isPackagedLogon);
+            // on screen. Windows starts a packaged start-up task with no command
+            // line argument, so ask Windows how this process was activated
+            // instead of guessing from the clock (the log-on time is not
+            // reported on every machine).
+            var isStartupLaunch = commandArgs.Any(a => a.Equals("--startup", StringComparison.OrdinalIgnoreCase) || a.Equals("--minimized", StringComparison.OrdinalIgnoreCase))
+                || IsStartupTaskActivation();
+            var showWindowOnStart = userSettings.Settings.IsFirstRun || !isStartupLaunch;
             if (showWindowOnStart)
             {
                 Services.GetRequiredService<IRunnerService>().ShowUI();
@@ -233,54 +237,25 @@ namespace Lively
         }
 
         /// <summary>
-        /// True when this process was started in the first few minutes after the
-        /// person logged on. That is the window in which Windows runs the
-        /// start-up task, and the one case where no window may appear.
+        /// True when Windows itself started this process from the packaged
+        /// start-up task. Unlike guessing from the log-on time, this keeps
+        /// working on machines that do not report the log-on time.
         /// </summary>
-        private static bool StartedAtLogon()
+        private static bool IsStartupTaskActivation()
         {
+            if (!PackageUtil.IsRunningAsPackaged)
+                return false;
+
             try
             {
-                var logon = GetLogonTime();
-                if (logon is null) return false;
-
-                return DateTime.Now - logon.Value < TimeSpan.FromMinutes(3);
+                var args = AppInstance.GetActivatedEventArgs();
+                return args?.Kind == ActivationKind.StartupTask;
             }
             catch
             {
                 return false;
             }
         }
-
-        private static DateTime? GetLogonTime()
-        {
-            // WTSLogonTime = 14, WTS_CURRENT_SESSION = -1.
-            if (!WTSQuerySessionInformationW(IntPtr.Zero, -1, 14, out var buffer, out var bytes) || bytes < 8)
-            {
-                return null;
-            }
-
-            try
-            {
-                var fileTime = Marshal.ReadInt64(buffer);
-                return DateTime.FromFileTimeUtc(fileTime).ToLocalTime();
-            }
-            finally
-            {
-                WTSFreeMemory(buffer);
-            }
-        }
-
-        [DllImport("wtsapi32.dll", SetLastError = true)]
-        private static extern bool WTSQuerySessionInformationW(
-            IntPtr server,
-            int sessionId,
-            int infoClass,
-            out IntPtr buffer,
-            out int bytesReturned);
-
-        [DllImport("wtsapi32.dll")]
-        private static extern void WTSFreeMemory(IntPtr memory);
 
         /// <summary>
         /// Reads Iceberg's own settings to find out whether wallpapers should

@@ -443,11 +443,6 @@ namespace Lively.Core
             var thumbRequiredAvgColor = (userSettings.Settings.SystemTaskbarTheme == TaskbarTheme.wallpaper || userSettings.Settings.SystemTaskbarTheme == TaskbarTheme.wallpaperFluent)
                 && (!displayManager.IsMultiScreen() || userSettings.Settings.WallpaperArrangement == WallpaperArrangement.span || wallpaper.Screen.IsPrimary);
 
-            if (!userSettings.Settings.DesktopAutoWallpaper && !thumbRequiredAvgColor)
-            {
-                return;
-            }
-
             var picturePath = await ResolveDesktopPicturePathAsync(wallpaper);
 
             //set accent color of taskbar..
@@ -464,8 +459,8 @@ namespace Lively.Core
                 }
             }
 
-            //set desktop picture wallpaper..
-            if (userSettings.Settings.DesktopAutoWallpaper && picturePath is not null)
+            // Always update the Windows system wallpaper so it renders immediately at boot
+            if (picturePath is not null)
             {
                 await SetWindowsWallpaperAsync(picturePath);
             }
@@ -474,8 +469,8 @@ namespace Lively.Core
         /// <summary>
         /// A picture wallpaper already is a file, so Windows is handed that file
         /// directly: no screenshot, no monitor device id, and none of the
-        /// screenshot code that throws for still pictures. Only a video or web
-        /// wallpaper needs a frame captured first.
+        /// screenshot code that throws for still pictures. For video or web
+        /// wallpapers, use their existing poster/thumbnail file, or capture a frame.
         /// </summary>
         private async Task<string> ResolveDesktopPicturePathAsync(IWallpaper wallpaper)
         {
@@ -484,6 +479,24 @@ namespace Lively.Core
                 File.Exists(filePath))
             {
                 return filePath;
+            }
+
+            // Fast path for video/web: use existing thumbnail/poster image if present on disk
+            if (wallpaper.Model?.ThumbnailPath is { Length: > 0 } thumbPath && File.Exists(thumbPath))
+            {
+                return thumbPath;
+            }
+
+            if (wallpaper.Model?.LivelyInfoFolderPath is { Length: > 0 } folder)
+            {
+                var candidate = Path.Combine(folder, "thumbnail.png");
+                if (File.Exists(candidate)) return candidate;
+                candidate = Path.Combine(folder, "thumbnail.jpg");
+                if (File.Exists(candidate)) return candidate;
+                candidate = Path.Combine(folder, "preview.png");
+                if (File.Exists(candidate)) return candidate;
+                candidate = Path.Combine(folder, "preview.jpg");
+                if (File.Exists(candidate)) return candidate;
             }
 
             try
@@ -507,6 +520,18 @@ namespace Lively.Core
         /// </summary>
         private async Task SetWindowsWallpaperAsync(string path)
         {
+            try
+            {
+                if (NativeWallpaperUtil.SetDesktopWallpaper(path))
+                {
+                    Logger.Info($"Desktop picture set via NativeWallpaperUtil: {path}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"NativeWallpaperUtil failed: {ex.Message}");
+            }
+
             if (PackageUtil.IsRunningAsPackaged)
             {
                 try
@@ -517,6 +542,7 @@ namespace Lively.Core
                         var file = await Windows.Storage.StorageFile.GetFileFromPathAsync(path);
                         if (await personalization.TrySetWallpaperImageAsync(file))
                         {
+                            Logger.Info($"Desktop picture set via personalization API: {path}");
                             return;
                         }
 
@@ -527,15 +553,6 @@ namespace Lively.Core
                 {
                     Logger.Warn($"Personalization API failed: {ex.Message}; falling back to SystemParametersInfo.");
                 }
-            }
-
-            if (NativeMethods.SystemParametersInfo(
-                NativeMethods.SPI_SETDESKWALLPAPER,
-                0,
-                path,
-                NativeMethods.SPIF_UPDATEINIFILE | NativeMethods.SPIF_SENDWININICHANGE) == 0)
-            {
-                Logger.Error(LogUtil.GetWin32Error("Failed to set the desktop picture"));
             }
         }
 

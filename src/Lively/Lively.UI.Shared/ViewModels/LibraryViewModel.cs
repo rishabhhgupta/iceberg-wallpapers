@@ -72,11 +72,7 @@ namespace Lively.UI.Shared.ViewModels
 
             this.i18n = i18n;
 
-            wallpaperScanFolders = new List<string>
-            {
-                Path.Combine(userSettings.Settings.WallpaperDir, Constants.CommonPartialPaths.WallpaperInstallDir),
-                Path.Combine(userSettings.Settings.WallpaperDir, Constants.CommonPartialPaths.WallpaperInstallTempDir)
-            };
+            wallpaperScanFolders = GetWallpaperScanFolders(userSettings.Settings.WallpaperDir);
 
             LibraryItemsFiltered = new AdvancedCollectionView(LibraryItems, false);
             LibraryItemsFiltered.SortDescriptions.Add(new SortDescription("Title", SortDirection.Ascending));
@@ -697,8 +693,7 @@ namespace Lively.UI.Shared.ViewModels
         {
             LibraryItems.Clear();
             wallpaperScanFolders.Clear();
-            wallpaperScanFolders.Add(Path.Combine(newDir, Constants.CommonPartialPaths.WallpaperInstallDir));
-            wallpaperScanFolders.Add(Path.Combine(newDir, Constants.CommonPartialPaths.WallpaperInstallTempDir));
+            wallpaperScanFolders.AddRange(GetWallpaperScanFolders(newDir));
             using (LibraryItemsFiltered.DeferRefresh())
             {
                 foreach (var item in ScanWallpaperFolders(wallpaperScanFolders))
@@ -712,6 +707,28 @@ namespace Lively.UI.Shared.ViewModels
         {
             foreach (var item in LibraryItems)
                 item.ImagePath = state == LivelyGUIState.lite ? item.ThumbnailPath : item.PreviewClipPath ?? item.ThumbnailPath;
+        }
+
+        /// <summary>
+        /// Adds wallpaper folders that appeared since the last scan, for example
+        /// one that rotation just downloaded. Safe to call from any thread.
+        /// </summary>
+        public void RefreshWallpapers()
+        {
+            dispatcher.TryEnqueue(RefreshWallpapersOnUiThread);
+        }
+
+        private void RefreshWallpapersOnUiThread()
+        {
+            var known = new HashSet<string>(LibraryItems.Select(x => x.LivelyInfoFolderPath), StringComparer.OrdinalIgnoreCase);
+            using (LibraryItemsFiltered.DeferRefresh())
+            {
+                foreach (var item in ScanWallpaperFolders(wallpaperScanFolders))
+                {
+                    if (known.Add(item.LivelyInfoFolderPath))
+                        LibraryItems.Add(item);
+                }
+            }
         }
 
         #endregion //public methods
@@ -741,6 +758,24 @@ namespace Lively.UI.Shared.ViewModels
         }
 
         /// <summary>
+        /// Folders that can hold wallpaper packages: the person's chosen
+        /// wallpaper directory, the temporary install folder, and the library
+        /// from the original Lively app. The rotation cache is deliberately not
+        /// scanned because it contains static pictures for the automatic
+        /// changer, not the person's live wallpapers. Duplicates are removed
+        /// because Windows paths are not case-sensitive.
+        /// </summary>
+        private static List<string> GetWallpaperScanFolders(string wallpaperDir)
+        {
+            return new[]
+            {
+                Path.Combine(wallpaperDir, Constants.CommonPartialPaths.WallpaperInstallDir),
+                Path.Combine(wallpaperDir, Constants.CommonPartialPaths.WallpaperInstallTempDir),
+                Constants.CommonPaths.LegacyLivelyLibraryDir,
+            }.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        /// <summary>
         /// Load wallpapers from the given parent folder(), only top directory is scanned.
         /// </summary>
         /// <param name="folderPaths">Parent folders to search for subdirectories.</param>
@@ -752,7 +787,8 @@ namespace Lively.UI.Shared.ViewModels
             {
                 try
                 {
-                    dir.Add(Directory.GetDirectories(folderPaths[i], "*", SearchOption.TopDirectoryOnly));
+                    if (Directory.Exists(folderPaths[i]))
+                        dir.Add(Directory.GetDirectories(folderPaths[i], "*", SearchOption.TopDirectoryOnly));
                 }
                 catch (Exception e)
                 {
@@ -760,6 +796,7 @@ namespace Lively.UI.Shared.ViewModels
                 }
             }
 
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < dir.Count; i++)
             {
                 for (int j = 0; j < dir[i].Length; j++)
@@ -768,6 +805,11 @@ namespace Lively.UI.Shared.ViewModels
                     LibraryModel item = null;
                     try
                     {
+                        // The scan folder also holds SaveData and wallpapers
+                        // subfolders, which are not wallpaper packages.
+                        if (!File.Exists(Path.Combine(currDir, "LivelyInfo.json")))
+                            continue;
+
                         item = wallpaperLibraryFactory.CreateFromDirectory(currDir);
                         LocalizeModel(item, userSettings.Settings.Language);
                         item.ImagePath = userSettings.Settings.UIMode != LivelyGUIState.lite ? item.ImagePath : item.ThumbnailPath;
@@ -778,7 +820,7 @@ namespace Lively.UI.Shared.ViewModels
                         Logger.Error(e);
                     }
 
-                    if (item != null)
+                    if (item != null && seen.Add(item.LivelyInfoFolderPath))
                     {
                         yield return item;
                     }

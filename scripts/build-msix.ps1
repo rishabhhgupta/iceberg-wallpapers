@@ -113,6 +113,7 @@ Write-Step "Packing MSIX"
 $signing = if ($Sign) { 'true' } else { 'false' }
 & $Dotnet build $uiProj `
     -c $Configuration `
+    -m:1 `
     -p:Platform=$Platform `
     -p:RuntimeIdentifiers=$Runtime `
     -p:RuntimeIdentifier=$Runtime `
